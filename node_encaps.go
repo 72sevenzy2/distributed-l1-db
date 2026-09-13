@@ -2,7 +2,6 @@ package db
 
 import (
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -31,6 +30,7 @@ func (n *Node) AssignFollower() {
 var InvalidRoleErr = errors.New("node is not a leader.")
 var InvalidSetStrTypeErr = errors.New("SetStr requires string value")
 var InvalidSetIntTypeErr = errors.New("SetInt requires int value")
+
 // Commands for which each node will replicate.
 func (n *Node) SetStr(key, value string, TTL time.Duration) error {
 	if n.NodeRole != Leader {

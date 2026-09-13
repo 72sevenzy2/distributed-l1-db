@@ -1,21 +1,34 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/72sevenzy2/in-memory-database"
 )
 
 func main() {
+	s := flag.String("id", "node-#", "-id <node id>")
+	addr := flag.String("addr", "", "-addr <node port>")
+
 	// start tcp server
 	ln, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		panic(err)
 	}
 
-	//b := db.NewDB() // connections share same db instance.
-	node1 := db.NewNode("node-1", ":8080", 0, []string{":8082", ":8081"})
+	replicaFlag := flag.String("replicas", "", "comma-separated replica addresses")
+	flag.Parse()
+
+	var replicas []string
+
+	if *replicaFlag != "" {
+		replicas = strings.Split(*replicaFlag, ",")
+	}
+
+	node1 := db.NewNode(*s, *addr, db.Leader, replicas)
 	if err := node1.Start(); err != nil {
 		panic(err)
 	}
