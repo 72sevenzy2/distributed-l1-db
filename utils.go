@@ -62,7 +62,7 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 	return false
 }
 
-func Get(key string, n *Node, conn net.Conn) bool {
+func (c *Command) Get(n *Node, conn net.Conn) bool {
 	//if len(parts) < 2 || len(parts) > 2 {
 	//conn.Write(StringToByte("invalid GET format:\n" +
 	//	"GET <KeyName>\n",
@@ -70,9 +70,9 @@ func Get(key string, n *Node, conn net.Conn) bool {
 	//	return false
 	//	}
 
-	val, ok := n.DB.GetInt(key)
+	val, ok := n.DB.GetInt(c.Key)
 	if !ok {
-		val2, ok2 := n.DB.GetString(key)
+		val2, ok2 := n.DB.GetString(c.Key)
 		if !ok2 {
 			conn.Write(StringToByte("data does not exist\n"))
 			return false
@@ -105,20 +105,20 @@ func Fetch(n *Node, conn net.Conn) {
 	}
 }
 
-func Del(key string, conn net.Conn, n *Node) bool {
+func (c *Command) Del(n *Node, conn net.Conn) bool {
 	//if len(parts) < 2 || len(parts) > 2 {
 	//	conn.Write(StringToByte("usage: DEL <KeyName>\n"))
 	//return false
 	//	}
-	if _, ok := n.DB.GetInt(key); ok {
-		n.DB.Del(key)
+	if _, ok := n.DB.GetInt(c.Key); ok {
+		n.DB.Del(c.Key)
 		conn.Write(StringToByte("successfully deleted key\n" +
 			".\n",
 		))
 		return true
 	}
-	if _, ok := n.DB.GetString(key); ok {
-		n.DB.Del(key)
+	if _, ok := n.DB.GetString(c.Key); ok {
+		n.DB.Del(c.Key)
 		conn.Write(StringToByte("successfuly deleted key\n" +
 			".\n",
 		))

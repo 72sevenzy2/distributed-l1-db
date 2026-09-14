@@ -36,7 +36,7 @@ func (n *Node) HandleConnection(conn net.Conn) {
 				conn.Write(StringToByte(".\n"))
 			}
 		case "GET":
-			ok := Get(cmd.Key, n, conn)
+			ok := cmd.Get(n, conn)
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}
@@ -44,7 +44,7 @@ func (n *Node) HandleConnection(conn net.Conn) {
 			Fetch(n, conn)
 			conn.Write(StringToByte(".\n"))
 		case "DEL":
-			ok := Del(cmd.Key, conn, n)
+			ok := cmd.Del(n, conn)
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}
