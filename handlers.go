@@ -20,12 +20,19 @@ func HandleConnection(conn net.Conn, node *Node) {
 		return
 	}
 
+	_, ok := cmd.Value.(string)
+	_, ok2 := cmd.Value.(uint32)
+	if !ok && !ok2 {
+		slog.Error("ERR", "type_error", "unknown value type.")
+		return
+	}
+
 	for {
 		UCinput := strings.ToUpper(cmd.Type) // normalise to all capital
 
 		switch UCinput {
 		case "SET":
-			ok := Set(parts, conn, node)
+			ok := Set(cmd.Key, cmd.Value, cmd.TTL, conn, node)
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}
