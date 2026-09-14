@@ -2,7 +2,6 @@ package db
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net"
 	"strings"
@@ -45,7 +44,7 @@ func HandleConnection(conn net.Conn, node *Node) {
 			Fetch(node, conn)
 			conn.Write(StringToByte(".\n"))
 		case "DEL":
-			ok := Del(parts, conn, node)
+			ok := Del(cmd.Key, conn, node)
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}

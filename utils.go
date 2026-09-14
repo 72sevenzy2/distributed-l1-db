@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"math"
 	"net"
 	"strconv"
 	"time"
@@ -31,10 +30,10 @@ func Set(key string, value any, ttl time.Duration, conn net.Conn, node *Node) bo
 
 	if err { // its a int.
 		// prevent f from overflowing if number entered is too big
-		if val > math.MaxUint32 {
-			conn.Write(StringToByte("please include a number value within range of unsigned int32.\n"))
-			return false
-		}
+		//if val > math.MaxUint32 {
+		//	conn.Write(StringToByte("please include a number value within range of unsigned int32.\n"))
+		///	return false
+		//	}
 
 		err2 := node.SetInt(key, val, ttl)
 		if err2 != nil {
@@ -107,20 +106,20 @@ func Fetch(n *Node, conn net.Conn) {
 	}
 }
 
-func Del(parts []string, conn net.Conn, n *Node) bool {
-	if len(parts) < 2 || len(parts) > 2 {
-		conn.Write(StringToByte("usage: DEL <KeyName>\n"))
-		return false
-	}
-	if _, ok := n.DB.GetInt(parts[1]); ok {
-		n.DB.Del(parts[1])
+func Del(key string, conn net.Conn, n *Node) bool {
+	//if len(parts) < 2 || len(parts) > 2 {
+	//	conn.Write(StringToByte("usage: DEL <KeyName>\n"))
+	//return false
+	//	}
+	if _, ok := n.DB.GetInt(key); ok {
+		n.DB.Del(key)
 		conn.Write(StringToByte("successfully deleted key\n" +
 			".\n",
 		))
 		return true
 	}
-	if _, ok := n.DB.GetString(parts[1]); ok {
-		n.DB.Del(parts[1])
+	if _, ok := n.DB.GetString(key); ok {
+		n.DB.Del(key)
 		conn.Write(StringToByte("successfuly deleted key\n" +
 			".\n",
 		))
