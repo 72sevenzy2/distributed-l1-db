@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func HandleConnection(conn net.Conn, node *Node) {
+func (n *Node) HandleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	var cmd Command
@@ -31,20 +31,20 @@ func HandleConnection(conn net.Conn, node *Node) {
 
 		switch UCinput {
 		case "SET":
-			ok := Set(cmd.Key, cmd.Value, cmd.TTL, conn, node)
+			ok := cmd.Set(n, conn)
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}
 		case "GET":
-			ok := Get(cmd.Key, node, conn)
+			ok := Get(cmd.Key, n, conn)
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}
 		case "FETCH":
-			Fetch(node, conn)
+			Fetch(n, conn)
 			conn.Write(StringToByte(".\n"))
 		case "DEL":
-			ok := Del(cmd.Key, conn, node)
+			ok := Del(cmd.Key, conn, n)
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}

@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"net"
 	"strconv"
-	"time"
 )
 
 // utility functions for server/main.go
 
-func Set(key string, value any, ttl time.Duration, conn net.Conn, node *Node) bool {
+func (c *Command) Set(node *Node, conn net.Conn) bool {
 	//if len(parts) < 4 || len(parts) > 4 {
 	//conn.Write(StringToByte("invalid SET format:\n" +
 	//	"SET <KeyName> <value> <TTL Expiration (in minutes, eg: 5)>\n",
@@ -26,7 +25,7 @@ func Set(key string, value any, ttl time.Duration, conn net.Conn, node *Node) bo
 	//f, err := strconv.ParseUint(parts[2], 10, 32) // returns uint64, err.
 
 	//parsing values type.
-	val, err := value.(uint32)
+	val, err := c.Value.(uint32)
 
 	if err { // its a int.
 		// prevent f from overflowing if number entered is too big
@@ -35,7 +34,7 @@ func Set(key string, value any, ttl time.Duration, conn net.Conn, node *Node) bo
 		///	return false
 		//	}
 
-		err2 := node.SetInt(key, val, ttl)
+		err2 := node.SetInt(c.Key, val, c.TTL)
 		if err2 != nil {
 			conn.Write(StringToByte(err2.Error() + "\n"))
 			return false
@@ -46,10 +45,10 @@ func Set(key string, value any, ttl time.Duration, conn net.Conn, node *Node) bo
 		return true
 	}
 
-	val2, err := value.(string)
+	val2, err := c.Value.(string)
 	if err {
 		// its a string if unable to parse to uint.
-		err2 := node.SetStr(key, val2, ttl)
+		err2 := node.SetStr(c.Key, val2, c.TTL)
 		if err2 != nil {
 			conn.Write(StringToByte(err2.Error() + "\n"))
 			return false

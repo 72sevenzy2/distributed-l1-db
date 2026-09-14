@@ -31,7 +31,7 @@ func (n *Node) Start() error {
 			return err
 		}
 
-		go HandleConnection(conn, n)
+		go n.HandleConnection(conn)
 	}
 }
 
