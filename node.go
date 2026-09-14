@@ -41,6 +41,7 @@ func (n *Node) Start() error {
 	}
 }
 
+// node-to-node heartbeat logic.
 func (n *Node) Heartbeatloop() {
 	t := time.NewTicker(1 * time.Second)
 	for range t.C {
@@ -68,4 +69,10 @@ func (n *Node) Sendheartbeat() {
 			continue
 		}
 	}
+}
+
+func (n *Node) HandleHeartbeat(id string, t time.Time) {
+	n.lock.Lock()
+	defer n.lock.Unlock()
+	n.HeartBeat[id] = t
 }

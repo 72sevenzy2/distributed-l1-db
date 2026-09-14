@@ -30,6 +30,8 @@ func (n *Node) HandleConnection(conn net.Conn) {
 		UCinput := strings.ToUpper(cmd.Type) // normalise to all capital
 
 		switch UCinput {
+		case "HEARTBEAT":
+			n.HandleHeartbeat(cmd.NodeID, time.Now())
 		case "SET":
 			ok := cmd.Set(n, conn)
 			if !ok {
