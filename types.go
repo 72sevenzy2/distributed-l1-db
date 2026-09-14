@@ -15,7 +15,10 @@ const (
 
 // Command defines the details of the commands that will be processed by follower nodes after the leader node.
 type Command struct {
-	Type  string
+	Type string
+	// NodeID will be used for heartbeat checks.
+	NodeID string
+
 	Key   string
 	Value any
 
@@ -35,9 +38,4 @@ type Node struct {
 	HeartBeat map[string]time.Time
 
 	DB *DB
-}
-
-type HeartBeatPayload struct {
-	Type   string
-	NodeID string
 }

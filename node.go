@@ -56,7 +56,7 @@ func (n *Node) Sendheartbeat() {
 			continue
 		}
 
-		msg := &HeartBeatPayload{
+		msg := &Command{
 			Type:   "heartbeat",
 			NodeID: n.ID,
 		}
