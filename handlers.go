@@ -37,7 +37,7 @@ func HandleConnection(conn net.Conn, node *Node) {
 				conn.Write(StringToByte(".\n"))
 			}
 		case "GET":
-			ok := Get(parts, node, conn)
+			ok := Get(cmd.Key, node, conn)
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}

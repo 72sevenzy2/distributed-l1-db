@@ -64,17 +64,17 @@ func Set(key string, value any, ttl time.Duration, conn net.Conn, node *Node) bo
 	return false
 }
 
-func Get(parts []string, n *Node, conn net.Conn) bool {
-	if len(parts) < 2 || len(parts) > 2 {
-		conn.Write(StringToByte("invalid GET format:\n" +
-			"GET <KeyName>\n",
-		))
-		return false
-	}
+func Get(key string, n *Node, conn net.Conn) bool {
+	//if len(parts) < 2 || len(parts) > 2 {
+	//conn.Write(StringToByte("invalid GET format:\n" +
+	//	"GET <KeyName>\n",
+	//	))
+	//	return false
+	//	}
 
-	val, ok := n.DB.GetInt(parts[1])
+	val, ok := n.DB.GetInt(key)
 	if !ok {
-		val2, ok2 := n.DB.GetString(parts[1])
+		val2, ok2 := n.DB.GetString(key)
 		if !ok2 {
 			conn.Write(StringToByte("data does not exist\n"))
 			return false
