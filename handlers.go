@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	"strings"
 	"time"
@@ -11,37 +12,16 @@ import (
 func HandleConnection(conn net.Conn, node *Node) {
 	defer conn.Close()
 
-	//var cmd Command
+	var cmd Command
 
-	//d := json.NewDecoder(conn)
-	//if err := d.Decode(&cmd); err != nil {
-	//TODO: add slog logging
-	//fmt.Println(err.Error())
-	//	return
-	//}
-
-	buf := make([]byte, 1024) // preallocated buffer
+	d := json.NewDecoder(conn)
+	if err := d.Decode(&cmd); err != nil {
+		slog.Error("ERR", "decoding_err", err.Error())
+		return
+	}
 
 	for {
-		n, err := conn.Read(buf)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		input := string(buf[:n])
-
-		parts := strings.Fields(input)
-
-		if len(parts) == 0 { // avoid panic
-			// write exit delimeter to avoid hung connections upon empty inputs entered.
-			conn.Write(StringToByte(".\n"))
-			continue
-		}
-
-		// database logic
-
-		UCinput := strings.ToUpper(parts[0]) // normalise to all capital
+		UCinput := strings.ToUpper(cmd.Type) // normalise to all capital
 
 		switch UCinput {
 		case "SET":
