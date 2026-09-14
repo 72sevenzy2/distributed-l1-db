@@ -31,7 +31,13 @@ type Node struct {
 	NodeRole Role
 
 	// Replicas represent a string array of existing nodes addresses.
-	Replicas []string
+	Replicas  []string
+	HeartBeat map[string]time.Time
 
 	DB *DB
+}
+
+type HeartBeatPayload struct {
+	Type   string
+	NodeID string
 }
