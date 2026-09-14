@@ -10,30 +10,33 @@ import (
 
 // utility functions for server/main.go
 
-func Set(parts []string, conn net.Conn, node *Node) bool {
-	if len(parts) < 4 || len(parts) > 4 {
-		conn.Write(StringToByte("invalid SET format:\n" +
-			"SET <KeyName> <value> <TTL Expiration (in minutes, eg: 5)>\n",
-		))
-		return false
-	}
+func Set(key string, value any, ttl time.Duration, conn net.Conn, node *Node) bool {
+	//if len(parts) < 4 || len(parts) > 4 {
+	//conn.Write(StringToByte("invalid SET format:\n" +
+	//	"SET <KeyName> <value> <TTL Expiration (in minutes, eg: 5)>\n",
+	//	))
+	//	return false
+	//	}
 
-	n, err := strconv.Atoi(parts[3]) // parse ttl expiration
-	if err != nil {
-		conn.Write(StringToByte("please include a valid TTL, (eg: 10, will be in minutes)\n"))
-		return false
-	}
+	//n, err := strconv.Atoi(parts[3]) // parse ttl expiration
+	//if err != nil {
+	//	conn.Write(StringToByte("please include a valid TTL, (eg: 10, will be in minutes)\n"))
+	//return false
+	//	}
 
-	f, err := strconv.ParseUint(parts[2], 10, 32) // returns uint64, err.
+	//f, err := strconv.ParseUint(parts[2], 10, 32) // returns uint64, err.
 
-	if err == nil { // its a int.
+	//parsing values type.
+	val, err := value.(uint32)
+
+	if err { // its a int.
 		// prevent f from overflowing if number entered is too big
-		if f > math.MaxUint32 {
+		if val > math.MaxUint32 {
 			conn.Write(StringToByte("please include a number value within range of unsigned int32.\n"))
 			return false
 		}
 
-		err2 := node.SetInt(parts[1], uint32(f), time.Minute*time.Duration(n))
+		err2 := node.SetInt(key, val, ttl)
 		if err2 != nil {
 			conn.Write(StringToByte(err2.Error() + "\n"))
 			return false
@@ -44,16 +47,21 @@ func Set(parts []string, conn net.Conn, node *Node) bool {
 		return true
 	}
 
-	// its a string if unable to parse to uint.
-	err2 := node.SetStr(parts[1], parts[2], time.Minute*time.Duration(n))
-	if err2 != nil {
-		conn.Write(StringToByte(err2.Error() + "\n"))
-		return false
+	val2, err := value.(string)
+	if err {
+		// its a string if unable to parse to uint.
+		err2 := node.SetStr(key, val2, ttl)
+		if err2 != nil {
+			conn.Write(StringToByte(err2.Error() + "\n"))
+			return false
+		}
+		conn.Write(StringToByte("successful\n" +
+			".\n",
+		))
+		return true
 	}
-	conn.Write(StringToByte("successful\n" +
-		".\n",
-	))
-	return true
+	conn.Write(StringToByte("unknown value type." + "\n"))
+	return false
 }
 
 func Get(parts []string, n *Node, conn net.Conn) bool {
@@ -120,4 +128,3 @@ func Del(parts []string, conn net.Conn, n *Node) bool {
 	}
 	return false
 }
-
