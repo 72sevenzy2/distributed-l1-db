@@ -123,7 +123,7 @@ func (n *Node) Sendheartbeat() {
 	}
 }
 
-func (n *Node) HandleHeartbeat(id string, conn net.Conn) {
+func (n *Node) HandleHeartbeat(id string, conn net.Conn, term uint64) {
 	n.lock.Lock()
 	n.Peers[id] = &Peer{
 		LastSeen: time.Now(),
@@ -134,6 +134,7 @@ func (n *Node) HandleHeartbeat(id string, conn net.Conn) {
 	msg := &Command{
 		Type:   "heartbeat_ack",
 		NodeID: n.ID,
+		Term:   term,
 	}
 
 	enc := json.NewEncoder(conn)
