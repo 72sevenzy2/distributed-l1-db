@@ -1,8 +1,8 @@
 <h1 align="center"> key-value style in-memory database. </h1>
 <br>
 <ul>
-  <li>persistant serverside error handling for edge cases.</li>
-  <li>interactive cli mode, which stores variable-like data (for now only supports values of type string and int) to then be retrieved         later with methods like "GET", "SET", "DEL", and "EXIT" to exit the program.</li>
+  <li>persistant serverside error handling.</li>
+  <li>interactive cli mode, which stores variable-like data  to then be retrieved later with methods like "GET", "SET", "DEL", and "EXIT" to exit the program.</li>
   <li>serializes values to raw bytes before appending to the database struct for optimised performance upon tcp communication.</li>
   <li>utilises a tcp server for database logic and validation.</li>
 </ul>
