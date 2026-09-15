@@ -28,6 +28,7 @@ func (n *Node) Start() error {
 	defer l.Close()
 
 	go n.Heartbeatloop()
+	go n.FailureDetectionloop()
 
 	fmt.Println("node listening on addr:", n.Addr)
 
@@ -52,6 +53,30 @@ func (n *Node) Heartbeatloop() {
 
 		if role == Leader {
 			go n.Sendheartbeat()
+		}
+	}
+}
+
+// detects failed heartbeats from nodes.
+func (n *Node) FailureDetectionloop() {
+	t := time.NewTicker(1 * time.Second)
+	defer t.Stop()
+
+	for range t.C {
+		n.lock.Lock()
+		defer n.lock.Unlock()
+
+		//heartbeart timeout until its considered dead.
+		timeout := 3 * time.Second
+		now := time.Now()
+
+		for id, peer := range n.Peers {
+			if now.Sub(peer.LastSeen) > timeout {
+				if peer.Alive {
+					slog.Warn("PEER_DEAD", "node", id)
+				}
+				peer.Alive = false
+			}
 		}
 	}
 }
