@@ -31,7 +31,7 @@ func (n *Node) HandleConnection(conn net.Conn) {
 
 		switch UCinput {
 		case "HEARTBEAT":
-			n.HandleHeartbeat(cmd.NodeID, time.Now())
+			n.HandleHeartbeat(cmd.NodeID, time.Now(), conn)
 		case "SET":
 			ok := cmd.Set(n, conn)
 			if !ok {
@@ -84,6 +84,5 @@ func (n *Node) Replicate(addr string, cmd Command) error {
 	if err := enc.Encode(cmd); err != nil {
 		return err
 	}
-
 	return nil
 }

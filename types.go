@@ -25,6 +25,12 @@ type Command struct {
 	TTL time.Duration
 }
 
+// Peer represents a nodes heartbeat meta data for failure alert detection.
+type Peer struct {
+	LastSeen time.Time
+	Alive    bool
+}
+
 // a node represents an database instance.
 type Node struct {
 	lock sync.RWMutex
@@ -34,8 +40,8 @@ type Node struct {
 	NodeRole Role
 
 	// Replicas represent a string array of existing nodes addresses.
-	Replicas  []string
-	HeartBeat map[string]time.Time
+	Replicas []string
+	Peers    map[string]*Peer
 
 	DB *DB
 }

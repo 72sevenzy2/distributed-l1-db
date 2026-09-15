@@ -10,12 +10,12 @@ import (
 
 func NewNode(id, addr string, role Role, replicas []string) *Node {
 	return &Node{
-		ID:        id,
-		Addr:      addr,
-		NodeRole:  role,
-		Replicas:  replicas,
-		HeartBeat: make(map[string]time.Time),
-		DB:        NewDB(),
+		ID:       id,
+		Addr:     addr,
+		NodeRole: role,
+		Replicas: replicas,
+		Peers:    make(map[string]*Peer),
+		DB:       NewDB(),
 	}
 }
 
@@ -68,11 +68,38 @@ func (n *Node) Sendheartbeat() {
 			slog.Error("ERR", "encoding_err", err)
 			continue
 		}
+
+		var ack Command
+		dec := json.NewDecoder(conn)
+		if err := dec.Decode(&ack); err != nil {
+			slog.Error("ERR", "decoding_err", err)
+			return
+		}
+
+		if ack.Type != "heartbeat_ack" {
+			slog.Error("ERR", "invalid_heartbeat_type", ack.Type)
+			return
+		}
+		slog.Info("HEARTBEAT_ACK", "received_ack", ack.NodeID)
 	}
 }
 
-func (n *Node) HandleHeartbeat(id string, t time.Time) {
+func (n *Node) HandleHeartbeat(id string, t time.Time, conn net.Conn) {
 	n.lock.Lock()
-	defer n.lock.Unlock()
-	n.HeartBeat[id] = t
+	n.Peers[id] = &Peer{
+		LastSeen: time.Now(),
+		Alive:    true,
+	}
+	n.lock.Unlock()
+
+	msg := &Command{
+		Type:   "heartbeat_ack",
+		NodeID: n.ID,
+	}
+
+	enc := json.NewEncoder(conn)
+	if err := enc.Encode(msg); err != nil {
+		slog.Error("ERR", "encoding_err", err)
+		return
+	}
 }
