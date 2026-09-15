@@ -7,10 +7,11 @@ import (
 
 type Role uint8 // small integer which dictates a nodes role.
 
-// Represents a nodes role, either an follower or leader.
+// Represents a nodes role, either an follower or leader, Candidate for new leader node.
 const (
-	Leader Role = iota
-	Follower
+	Leader    Role = iota // 0
+	Follower              // 1
+	Candidate             // 2
 )
 
 // Command defines the details of the commands that will be processed by follower nodes after the leader node.
@@ -44,4 +45,8 @@ type Node struct {
 	Peers    map[string]*Peer
 
 	DB *DB
+
+	// new leader node election configs.
+	currentTerm uint64
+	voteFor     string
 }

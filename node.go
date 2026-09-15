@@ -44,8 +44,15 @@ func (n *Node) Start() error {
 // node-to-node heartbeat logic.
 func (n *Node) Heartbeatloop() {
 	t := time.NewTicker(1 * time.Second)
+	defer t.Stop()
 	for range t.C {
-		go n.Sendheartbeat()
+		n.lock.RLock()
+		role := n.NodeRole
+		n.lock.RUnlock()
+
+		if role == Leader {
+			go n.Sendheartbeat()
+		}
 	}
 }
 
@@ -63,9 +70,9 @@ func (n *Node) Sendheartbeat() {
 		}
 
 		enc := json.NewEncoder(conn)
-		conn.Close()
 		if err := enc.Encode(msg); err != nil {
 			slog.Error("ERR", "encoding_err", err)
+			conn.Close()
 			continue
 		}
 
@@ -73,8 +80,10 @@ func (n *Node) Sendheartbeat() {
 		dec := json.NewDecoder(conn)
 		if err := dec.Decode(&ack); err != nil {
 			slog.Error("ERR", "decoding_err", err)
+			conn.Close()
 			return
 		}
+		conn.Close()
 
 		if ack.Type != "heartbeat_ack" {
 			slog.Error("ERR", "invalid_heartbeat_type", ack.Type)
@@ -84,7 +93,7 @@ func (n *Node) Sendheartbeat() {
 	}
 }
 
-func (n *Node) HandleHeartbeat(id string, t time.Time, conn net.Conn) {
+func (n *Node) HandleHeartbeat(id string, conn net.Conn) {
 	n.lock.Lock()
 	n.Peers[id] = &Peer{
 		LastSeen: time.Now(),
