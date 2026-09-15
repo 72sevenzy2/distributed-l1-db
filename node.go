@@ -89,9 +89,14 @@ func (n *Node) Sendheartbeat() {
 			continue
 		}
 
+		n.lock.RLock()
+		term := n.currentTerm // leader nodes current term passed to follower nodes.
+		n.lock.RUnlock()
+
 		msg := &Command{
 			Type:   "heartbeat",
 			NodeID: n.ID,
+			Term:   term,
 		}
 
 		enc := json.NewEncoder(conn)

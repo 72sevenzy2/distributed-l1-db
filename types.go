@@ -24,6 +24,9 @@ type Command struct {
 	Value any
 
 	TTL time.Duration
+
+	Term      uint64
+	GivenVote bool
 }
 
 // Peer represents a nodes heartbeat meta data for failure alert detection.
@@ -47,6 +50,10 @@ type Node struct {
 	DB *DB
 
 	// new leader node election configs.
+
+	// currentTerm acts as a version of the most recent leader election that has occured (or none by default.)
+	// prevents previous leaders from being the leading node which causes follower nodes to replicate stale information.
 	currentTerm uint64
-	voteFor     string
+
+	votedFor string
 }
