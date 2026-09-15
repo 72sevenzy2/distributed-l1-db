@@ -91,12 +91,14 @@ func (n *Node) Sendheartbeat() {
 
 		n.lock.RLock()
 		term := n.currentTerm // leader nodes current term passed to follower nodes.
+		role := n.GetRole()
 		n.lock.RUnlock()
 
 		msg := &Command{
 			Type:   "heartbeat",
 			NodeID: n.ID,
 			Term:   term,
+			Role:   role,
 		}
 
 		enc := json.NewEncoder(conn)
@@ -123,11 +125,35 @@ func (n *Node) Sendheartbeat() {
 	}
 }
 
-func (n *Node) HandleHeartbeat(id string, conn net.Conn, term uint64) {
+func (n *Node) HandleHeartbeat(id string, conn net.Conn, term uint64, role Role) {
 	n.lock.Lock()
+
+	enc := json.NewEncoder(conn)
+	if term < n.currentTerm { // ignore heartbeats from an older term.
+		trm := n.currentTerm
+		n.lock.Unlock()
+		msg := &Command{
+			Type:   "heartbeat_ack",
+			NodeID: n.ID,
+			Term:   trm,
+		}
+
+		if err := enc.Encode(msg); err != nil {
+			slog.Error("ERR", "encoding_err", err)
+			return
+		}
+		return
+	}
+
+	if term > n.currentTerm {
+		n.currentTerm = term
+		n.votedFor = ""
+	}
+
 	n.Peers[id] = &Peer{
 		LastSeen: time.Now(),
 		Alive:    true,
+		Role:     role,
 	}
 	n.lock.Unlock()
 
@@ -137,9 +163,7 @@ func (n *Node) HandleHeartbeat(id string, conn net.Conn, term uint64) {
 		Term:   term,
 	}
 
-	enc := json.NewEncoder(conn)
 	if err := enc.Encode(msg); err != nil {
 		slog.Error("ERR", "encoding_err", err)
-		return
 	}
 }

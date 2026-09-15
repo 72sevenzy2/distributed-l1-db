@@ -31,7 +31,7 @@ func (n *Node) HandleConnection(conn net.Conn) {
 
 		switch UCinput {
 		case "HEARTBEAT":
-			n.HandleHeartbeat(cmd.NodeID, conn, cmd.Term)
+			n.HandleHeartbeat(cmd.NodeID, conn, cmd.Term, cmd.Role)
 		case "SET":
 			ok := cmd.Set(n, conn)
 			if !ok {

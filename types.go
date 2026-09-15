@@ -27,12 +27,14 @@ type Command struct {
 
 	Term      uint64
 	GivenVote bool
+	Role      Role
 }
 
 // Peer represents a nodes heartbeat meta data for failure alert detection.
 type Peer struct {
 	LastSeen time.Time
 	Alive    bool
+	Role     Role
 }
 
 // a node represents an database instance.
@@ -54,6 +56,5 @@ type Node struct {
 	// currentTerm acts as a version of the most recent leader election that has occured (or none by default.)
 	// prevents previous leaders from being the leading node which causes follower nodes to replicate stale information.
 	currentTerm uint64
-
-	votedFor string
+	votedFor    string
 }
