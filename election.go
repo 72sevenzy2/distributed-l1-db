@@ -23,6 +23,7 @@ func (n *Node) ElectionLoop() {
 		now := time.Now()
 		leaderDied := true
 		for _, peer := range n.Peers {
+			// loop over n.Peers making sure leader node is alive.
 			if peer.Role == Leader && peer.Alive && now.Sub(peer.LastSeen) < 3*time.Second {
 				leaderDied = false // meaning that the leader had not died yet.
 				break
@@ -39,7 +40,7 @@ func (n *Node) ElectionLoop() {
 func (n *Node) StartElection() {
 	n.lock.Lock()
 
-	// skip if leader
+	// double check, prevents already assigned leader (during before this methods lock had been acquired) from being a candidate.
 	if n.NodeRole == Leader {
 		n.lock.Unlock()
 		return
@@ -71,14 +72,16 @@ func (n *Node) StartElection() {
 		}
 	}
 
-	cluster := len(n.Replicas) + 1
+	cluster := len(n.Replicas) + 1 // as len(n.Replicas) would include only 2 replicas, including this node, cluster will be 3.
 	// quorum represents the number of votes required for a node to be elected.
-	quorum := cluster/2 + 1
+	quorum := cluster/2 + 1 // 2 for 3 nodes.
 
+	// prevents obsolete nodes with outdated terms from being leader.
 	if n.currentTerm != term {
 		return
 	}
 
+	// making sure current node is of type Candidate before promotion.
 	if n.NodeRole != Candidate {
 		return
 	}
@@ -157,6 +160,7 @@ func (n *Node) HandleVoteRequest(msg Command, conn net.Conn) {
 			n.votedFor = ""
 		}
 
+		// n.votedFor == msg.NodeID allows retryable votes for candidate peer if needed.
 		// n.votedFor as fast path.
 		if n.votedFor == "" || n.votedFor == msg.NodeID { // or if current node voted for candidate.
 			n.votedFor = msg.NodeID
