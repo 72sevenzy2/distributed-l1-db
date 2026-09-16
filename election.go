@@ -165,7 +165,7 @@ func (n *Node) HandleVoteRequest(msg Command, conn net.Conn) {
 	}
 
 	resp := Command{
-		Type:      "vote_request",
+		Type:      "vote_response",
 		NodeID:    n.ID,
 		Term:      n.currentTerm,
 		GivenVote: allowed,
