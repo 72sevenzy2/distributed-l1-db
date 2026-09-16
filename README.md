@@ -1,10 +1,11 @@
-<h1 align="center"> key-value style in-memory database. </h1>
+<h1 align="center"> key-value style l1 db. </h1>
 <br>
 <ul>
+  <li>utilises a node-based communication system with a leader election mechanism if it were to fail.</li>
   <li>persistant serverside error handling.</li>
   <li>interactive cli mode, which stores variable-like data  to then be retrieved later with methods like "GET", "SET", "DEL", and "EXIT" to exit the program.</li>
-  <li>serializes values to raw bytes before appending to the database struct for optimised performance upon tcp communication.</li>
-  <li>utilises a tcp server for database logic and validation.</li>
+  <li>serializes values to raw bytes before appending to the in-memory map for optimised performance upon node-to-node communication.</li>
+  <li>listens on a tcp server for database logic and validation.</li>
 </ul>
 
 <h1 align="center">usage:</h1>
@@ -112,9 +113,11 @@ func main() {
 <h1 align="center">interactive cli tutorial:</h1>
 <h2 align="center">run the following to begin:</h2>
 <h3 align="center">
-  <code> go run . </code>
+  <code> go run . -id node-id -addr port -replicas port1,port2,port3 </code>
 </h3>
-<h2 align="center">and follow up by declaring a variable:</h2>
+<h4 align="center">-id represents an unique id for the leader node, eg "node-#1", -addr is the port in which it will listen on, and -replicas is for the ports in which the replica nodes will run on (comma-seperated).</h4>
+<br>
+<h2 align="center">follow up by declaring a variable:</h2>
 <h3 align="center">
   <code> SET [KeyName] [Value] </code>
 </h3>
