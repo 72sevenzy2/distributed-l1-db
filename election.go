@@ -49,7 +49,7 @@ func (n *Node) StartElection() {
 	// update currentTerm
 	n.currentTerm++
 
-	n.NodeRole = Candidate
+	n.AssignCandidate()
 
 	n.votedFor = n.ID
 
@@ -87,7 +87,7 @@ func (n *Node) StartElection() {
 	}
 
 	if votes >= quorum {
-		n.NodeRole = Leader
+		n.AssignLeader()
 
 		slog.Info("LEADER_ELECTED", "node", n.ID, "term", n.currentTerm, "votes", votes)
 	}
@@ -128,7 +128,7 @@ func (n *Node) RequestVote(addr string, term uint64) (bool, error) {
 		if resp.Term > n.currentTerm {
 			// if peers term is greater than current nodes term, then the peer is the one starting the Election, thus, this node should be a Follower node.
 			n.currentTerm = resp.Term
-			n.NodeRole = Follower
+			n.AssignFollower()
 			n.votedFor = ""
 		}
 

@@ -13,6 +13,12 @@ func (n *Node) GetRole() Role {
 	return n.NodeRole
 }
 
+func (n *Node) AssignCandidate() {
+	n.lock.Lock()
+	defer n.lock.Unlock()
+	n.NodeRole = Candidate
+}
+
 func (n *Node) AssignLeader() {
 	n.lock.Lock()
 	defer n.lock.Unlock()
