@@ -1,15 +1,13 @@
-package root
+package db
 
 import (
 	"fmt"
 	"testing"
 	"time"
-
-	"github.com/72sevenzy2/in-memory-database/db"
 )
 
 func TestDbInt(t *testing.T) {
-	b := *db.NewDB()
+	b := NewDB()
 	b.SetInt("name", 100000, time.Minute*10)
 	b.Del("name")
 
