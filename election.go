@@ -53,6 +53,7 @@ func (n *Node) StartElection() {
 	n.votedFor = n.ID
 
 	term := n.currentTerm
+	n.lock.Unlock()
 
 	slog.Info("ELECTION_BEGUN", "node", n.ID, "term", term)
 	votes := 1
