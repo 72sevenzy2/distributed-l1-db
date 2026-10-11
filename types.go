@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"sync"
 	"time"
 )
@@ -58,3 +59,9 @@ type Node struct {
 	currentTerm uint64
 	votedFor    string
 }
+
+// arbitrary errors for db.go
+var (
+	InvalidInputErr     = errors.New("invalid input.")
+	KeyAlreadyExistsErr = errors.New("key already exists.")
+)

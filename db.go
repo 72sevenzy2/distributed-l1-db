@@ -2,7 +2,6 @@ package db
 
 import (
 	"encoding/binary"
-	"errors"
 	"sync"
 	"time"
 
@@ -40,9 +39,6 @@ func (v *DB) DeleteAfterTTL(ttl time.Duration, key string) {
 	time.Sleep(ttl)
 	v.Del(key)
 }
-
-var InvalidInputErr = errors.New("invalid input.")
-var KeyAlreadyExistsErr = errors.New("key already exists.")
 
 func (v *DB) SetInt(key string, value uint32, ttl time.Duration) error {
 	if value == 0 {
