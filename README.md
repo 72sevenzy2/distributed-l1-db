@@ -1,12 +1,11 @@
 <h1 align="center"> key-value style l1 db. </h1>
 <br>
 <ul>
-  <li>TTLs for data with limited life-span.</li>
-  <li>utilises a node-based communication system with a leader election mechanism if it were to fail.</li>
+  <li>TTL-style eviction for stored data.</li>
+  <li>utilises a node-based communication system with a leader election mechanism upon leader node failure.</li>
   <li>persistant serverside error handling.</li>
   <li>interactive cli mode, which stores variable-like data  to then be retrieved later with methods like "GET", "SET", "DEL", and "EXIT" to exit the program.</li>
   <li>serializes values to raw bytes before appending to the in-memory map for optimised performance upon node-to-node communication.</li>
-  <li>listens on tcp server for database logic and validation.</li>
 </ul>
 
 <h1 align="center">usage:</h1>
