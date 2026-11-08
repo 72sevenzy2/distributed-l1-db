@@ -4,36 +4,25 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+
+	"unsafe"
 )
+
+func StringToByte(str string) []byte {
+	return unsafe.Slice(unsafe.StringData(str), len(str))
+}
+
+func ByteToString(b []byte) string {
+	return unsafe.String(unsafe.SliceData(b), len(b))
+}
 
 // utility functions for server/main.go
 
 func (c *Command) Set(node *Node, conn net.Conn) bool {
-	//if len(parts) < 4 || len(parts) > 4 {
-	//conn.Write(StringToByte("invalid SET format:\n" +
-	//	"SET <KeyName> <value> <TTL Expiration (in minutes, eg: 5)>\n",
-	//	))
-	//	return false
-	//	}
-
-	//n, err := strconv.Atoi(parts[3]) // parse ttl expiration
-	//if err != nil {
-	//	conn.Write(StringToByte("please include a valid TTL, (eg: 10, will be in minutes)\n"))
-	//return false
-	//	}
-
-	//f, err := strconv.ParseUint(parts[2], 10, 32) // returns uint64, err.
-
 	//parsing values type.
 	val, err := c.Value.(uint32)
 
-	if err { // its a int.
-		// prevent f from overflowing if number entered is too big
-		//if val > math.MaxUint32 {
-		//	conn.Write(StringToByte("please include a number value within range of unsigned int32.\n"))
-		///	return false
-		//	}
-
+	if err {
 		err2 := node.SetInt(c.Key, val, c.TTL)
 		if err2 != nil {
 			conn.Write(StringToByte(err2.Error() + "\n"))
@@ -63,13 +52,6 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 }
 
 func (c *Command) Get(n *Node, conn net.Conn) bool {
-	//if len(parts) < 2 || len(parts) > 2 {
-	//conn.Write(StringToByte("invalid GET format:\n" +
-	//	"GET <KeyName>\n",
-	//	))
-	//	return false
-	//	}
-
 	val, ok := n.DB.Get(c.Key, Uint32Encoder{})
 	if !ok {
 		val2, ok2 := n.DB.Get(c.Key, StringEncoder{})

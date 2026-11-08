@@ -3,8 +3,6 @@ package db
 import (
 	"sync"
 	"time"
-
-	"unsafe"
 )
 
 // metadata for value types
@@ -23,14 +21,6 @@ func NewDB() *DB { // initialise a new map to hold data
 	return &DB{
 		data: make(map[string]Entity),
 	}
-}
-
-func StringToByte(str string) []byte {
-	return unsafe.Slice(unsafe.StringData(str), len(str))
-}
-
-func ByteToString(b []byte) string {
-	return unsafe.String(unsafe.SliceData(b), len(b))
 }
 
 func (v *DB) DeleteAfterTTL(ttl time.Duration, key string) {
