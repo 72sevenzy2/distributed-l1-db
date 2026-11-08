@@ -24,7 +24,7 @@ func TestString(t *testing.T) {
 		fmt.Println(val, val2)
 	}
 
-	res, ex := d.GetAllString()
+	res, ex := d.GetAll(StringEncoder{})
 	if !ex {
 		fmt.Println("no data exists")
 	}

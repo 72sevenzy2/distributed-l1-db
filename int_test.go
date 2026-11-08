@@ -14,7 +14,7 @@ func TestDbInt(t *testing.T) {
 	b.Set("test1", 100000000, time.Minute*10, Uint32Encoder{})
 	b.Set("test2", 1434242324, time.Minute*10, Uint32Encoder{})
 
-	all, _ := b.GetAllInt()
+	all, _ := b.GetAll(Uint32Encoder{})
 
 	// print all
 	for k, v := range all {

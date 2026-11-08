@@ -89,8 +89,8 @@ func (c *Command) Get(n *Node, conn net.Conn) bool {
 }
 
 func Fetch(n *Node, conn net.Conn) {
-	vals, ok := n.DB.GetAllInt()      // returns map[string]uint32, bool
-	vals2, ok2 := n.DB.GetAllString() // returns map[string]string, bool
+	vals, ok := n.DB.GetAll(Uint32Encoder{})   // returns map[string]uint32, bool
+	vals2, ok2 := n.DB.GetAll(StringEncoder{}) // returns map[string]string, bool
 
 	if !ok && !ok2 {
 		conn.Write(StringToByte("no available key-values" + ".\n"))
