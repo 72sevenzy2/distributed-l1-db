@@ -70,9 +70,9 @@ func (c *Command) Get(n *Node, conn net.Conn) bool {
 	//	return false
 	//	}
 
-	val, ok := n.DB.GetInt(c.Key)
+	val, ok := n.DB.Get(c.Key, Uint32Encoder{})
 	if !ok {
-		val2, ok2 := n.DB.GetString(c.Key)
+		val2, ok2 := n.DB.Get(c.Key, StringEncoder{})
 		if !ok2 {
 			conn.Write(StringToByte("data does not exist\n"))
 			return false
@@ -110,14 +110,14 @@ func (c *Command) Del(n *Node, conn net.Conn) bool {
 	//	conn.Write(StringToByte("usage: DEL <KeyName>\n"))
 	//return false
 	//	}
-	if _, ok := n.DB.GetInt(c.Key); ok {
+	if _, ok := n.DB.Get(c.Key, Uint32Encoder{}); ok {
 		n.DB.Del(c.Key)
 		conn.Write(StringToByte("successfully deleted key\n" +
 			".\n",
 		))
 		return true
 	}
-	if _, ok := n.DB.GetString(c.Key); ok {
+	if _, ok := n.DB.Get(c.Key, StringEncoder{}); ok {
 		n.DB.Del(c.Key)
 		conn.Write(StringToByte("successfuly deleted key\n" +
 			".\n",

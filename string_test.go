@@ -9,15 +9,15 @@ import (
 func TestString(t *testing.T) {
 	d := NewDB()
 
-	err := d.SetString("test1", "h", time.Minute*10)
-	err2 := d.SetString("test2", "hi2", time.Minute*10)
+	err := d.Set("test1", "h", time.Minute*10, StringEncoder{})
+	err2 := d.Set("test2", "hi2", time.Minute*10, StringEncoder{})
 
 	if err != nil || err2 != nil {
 		fmt.Println(err.Error(), err2.Error())
 	}
 
-	val, ok := d.GetString("test1")
-	val2, ok2 := d.GetString("test2")
+	val, ok := d.Get("test1", StringEncoder{})
+	val2, ok2 := d.Get("test2", StringEncoder{})
 	if !ok || !ok2 {
 		fmt.Println("data doesnt exist")
 	} else {

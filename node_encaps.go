@@ -57,7 +57,7 @@ func (n *Node) SetStr(key, value string, TTL time.Duration) error {
 	}
 
 	// applying command locally before other nodes
-	err := n.DB.SetString(cmd.Type, value, cmd.TTL)
+	err := n.DB.Set(cmd.Type, value, cmd.TTL, StringEncoder{})
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (n *Node) SetInt(key string, value uint32, TTL time.Duration) error {
 	}
 
 	// applying command locally before other nodes
-	err := n.DB.SetInt(cmd.Type, val, cmd.TTL)
+	err := n.DB.Set(cmd.Type, val, cmd.TTL, Uint32Encoder{})
 	if err != nil {
 		return err
 	}
