@@ -2,14 +2,24 @@ package db
 
 import "encoding/binary"
 
-//
+// generic encoder/decoder.
 type Encoder[T any] interface {
+	TypeID() string
 	Encode(T) ([]byte, error)
 	Decode([]byte) (T, error)
 }
 
 type StringEncoder struct{}
 type Uint32Encoder struct{}
+
+// TypeID() returns the underlying generic type of an encoder/decoder.
+func (StringEncoder) TypeID() string {
+	return "string"
+}
+
+func (Uint32Encoder) TypeID() string {
+	return "uint32"
+}
 
 func (StringEncoder) Encode(v string) ([]byte, error) {
 	return StringToByte(v), nil
