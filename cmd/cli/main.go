@@ -2,15 +2,21 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
+	"strings"
+	"time"
+
+	db "github.com/72sevenzy2/in-memory-database"
 )
 
-// cli usage
-
 func main() {
-	conn, err := net.Dial("tcp", ":8080") // connect with tcp server
+	// pre-requisites: must start a tcp server before-hand on port 9000.
+	conn, err := net.Dial("tcp", ":9000") // connect with tcp server
 	if err != nil {
 		panic(err)
 	}
@@ -29,13 +35,55 @@ func main() {
 			break
 		}
 
-		input := scanner.Text()
-
-		// send input to tcp server
-		_, err := conn.Write([]byte(input + "\n"))
-		if err != nil {
-			fmt.Println(err.Error())
+		parts := strings.Fields(scanner.Text())
+		if len(parts) == 0 {
 			continue
+		}
+
+		cmd := db.Command{
+			Type: strings.ToUpper(parts[0]),
+		}
+
+		switch cmd.Type {
+		case "SET":
+			if len(parts) < 3 || len(parts) > 4 {
+				fmt.Println("usage: SET <key> <value> [TTL, e.g. 30s/2m]")
+				continue
+			}
+			cmd.Key = parts[1]
+			cmd.Value = parts[2]
+
+			if len(parts) == 4 {
+				ttl, err := time.ParseDuration(parts[3])
+				if err != nil {
+					fmt.Println("invalid ttl:", err)
+					continue
+				}
+				cmd.TTL = ttl
+			}
+
+		case "DEL":
+			if len(parts) != 2 {
+				fmt.Println("usage: DEL <key>")
+				continue
+			}
+
+			cmd.Key = parts[1]
+
+		case "GET":
+			if len(parts) != 2 {
+				fmt.Println("usage: GET <key>")
+				continue
+			}
+			cmd.Key = parts[1]
+
+		default:
+			fmt.Println("invalid command.")
+			continue
+		}
+		if err := json.NewEncoder(conn).Encode(cmd); err != nil {
+			fmt.Println(err)
+			break
 		}
 
 		for {
@@ -48,6 +96,9 @@ func main() {
 				return
 			}
 			if err2 != nil {
+				if errors.Is(err2, io.EOF) {
+					return
+				}
 				fmt.Println(err2.Error())
 				continue
 			}
