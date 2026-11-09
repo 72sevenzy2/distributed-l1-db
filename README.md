@@ -1,11 +1,11 @@
 <h1 align="center"> key-value style l1 db. </h1>
 <br>
 <ul>
-  <li>TTL-style eviction for stored data.</li>
-  <li>utilises a node-based communication system with a leader election mechanism upon leader node failure.</li>
+  <li>optional TTL-based eviction for short-lived data.</li>
+  <li>utilises an inter-node based communication system with a leader election mechanism upon leader failure.</li>
   <li>persistant serverside error handling.</li>
   <li>interactive cli mode, which stores variable-like data  to then be retrieved later with methods like "GET", "SET", "DEL", and "EXIT" to exit the program.</li>
-  <li>serializes values to raw bytes before appending to the in-memory map for optimised performance upon node-to-node communication.</li>
+  <li>serializes integer-based values to raw bytes before appending to l1 db for optimised performance upon replica node retrieval.</li>
 </ul>
 
 <h1 align="center">usage:</h1>
