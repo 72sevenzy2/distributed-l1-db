@@ -109,10 +109,6 @@ func Fetch(n *Node, conn net.Conn) {
 }
 
 func (c *Command) Del(n *Node, conn net.Conn) bool {
-	//if len(parts) < 2 || len(parts) > 2 {
-	//	conn.Write(StringToByte("usage: DEL <KeyName>\n"))
-	//return false
-	//	}
 	if _, ok := n.DB.Get(c.Key, Uint32Encoder{}); ok {
 		n.DB.Del(c.Key)
 		conn.Write(StringToByte("successfully deleted key\n" +
