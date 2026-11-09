@@ -2,6 +2,8 @@ package db
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"log/slog"
 	"net"
 	"strings"
@@ -11,21 +13,16 @@ import (
 func (n *Node) HandleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	var cmd Command
-
-	d := json.NewDecoder(conn)
-	if err := d.Decode(&cmd); err != nil {
-		slog.Error("ERR", "decoding_err", err.Error())
-		return
-	}
-
-	_, ok := cmd.GetValueType()
-	if !ok {
-		slog.Error("ERR", "type_error", "unknown value type.")
-		return
-	}
-
+	decoder := json.NewDecoder(conn)
 	for {
+		var cmd Command
+		if err := decoder.Decode(&cmd); err != nil {
+			if !errors.Is(err, io.EOF) {
+				slog.Error("ERR", "decoding_err", err.Error())
+			}
+			return
+		}
+
 		UCinput := strings.ToUpper(cmd.Type) // normalise to all capital
 
 		switch UCinput {
@@ -34,8 +31,13 @@ func (n *Node) HandleConnection(conn net.Conn) {
 		case "HEARTBEAT":
 			n.HandleHeartbeat(cmd.NodeID, conn, cmd.Term, cmd.Role)
 		case "SET":
-			ok := cmd.Set(n, conn)
+			_, ok := cmd.GetValueType()
 			if !ok {
+				slog.Error("ERR", "type_error", "unknown value type.")
+				return
+			}
+
+			if !cmd.Set(n, conn) {
 				conn.Write(StringToByte(".\n"))
 			}
 		case "GET":

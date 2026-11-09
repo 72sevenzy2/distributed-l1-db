@@ -76,10 +76,6 @@ func main() {
 				continue
 			}
 			cmd.Key = parts[1]
-
-		default:
-			fmt.Println("invalid command.")
-			continue
 		}
 		if err := json.NewEncoder(conn).Encode(cmd); err != nil {
 			fmt.Println(err)
