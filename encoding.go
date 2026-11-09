@@ -9,33 +9,33 @@ type Encoder[T any] interface {
 	Decode([]byte) (T, error)
 }
 
-type StringEncoder struct{}
-type Uint32Encoder struct{}
+type String struct{}
+type Integer struct{}
 
 // TypeID() returns the underlying generic type of an encoder/decoder.
-func (StringEncoder) TypeID() string {
+func (String) TypeID() string {
 	return "string"
 }
 
-func (Uint32Encoder) TypeID() string {
+func (Integer) TypeID() string {
 	return "uint32"
 }
 
-func (StringEncoder) Encode(v string) ([]byte, error) {
+func (String) Encode(v string) ([]byte, error) {
 	return StringToByte(v), nil
 }
 
-func (StringEncoder) Decode(v []byte) (string, error) {
+func (String) Decode(v []byte) (string, error) {
 	return ByteToString(v), nil
 }
 
-func (Uint32Encoder) Encode(v uint32) ([]byte, error) {
+func (Integer) Encode(v uint32) ([]byte, error) {
 	buf := make([]byte, 4)
 	binary.LittleEndian.PutUint32(buf, v)
 	return buf, nil
 }
 
-func (Uint32Encoder) Decode(v []byte) (uint32, error) {
+func (Integer) Decode(v []byte) (uint32, error) {
 	if len(v) != 4 {
 		return 0, InvalidInputErr
 	}

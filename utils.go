@@ -73,9 +73,9 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 	return false
 }
 func (c *Command) Get(n *Node, conn net.Conn) bool {
-	val, ok := n.DB.Get(c.Key, Uint32Encoder{})
+	val, ok := n.DB.Get(c.Key, Integer{})
 	if !ok {
-		val2, ok2 := n.DB.Get(c.Key, StringEncoder{})
+		val2, ok2 := n.DB.Get(c.Key, String{})
 		if !ok2 {
 			conn.Write(StringToByte("data does not exist\n"))
 			return false
@@ -92,8 +92,8 @@ func (c *Command) Get(n *Node, conn net.Conn) bool {
 }
 
 func Fetch(n *Node, conn net.Conn) {
-	vals, ok := n.DB.GetAll(Uint32Encoder{})   // returns map[string]uint32, bool
-	vals2, ok2 := n.DB.GetAll(StringEncoder{}) // returns map[string]string, bool
+	vals, ok := n.DB.GetAll(Integer{})  // returns map[string]uint32, bool
+	vals2, ok2 := n.DB.GetAll(String{}) // returns map[string]string, bool
 
 	if !ok && !ok2 {
 		conn.Write(StringToByte("no available key-values" + ".\n"))
@@ -109,14 +109,14 @@ func Fetch(n *Node, conn net.Conn) {
 }
 
 func (c *Command) Del(n *Node, conn net.Conn) bool {
-	if _, ok := n.DB.Get(c.Key, Uint32Encoder{}); ok {
+	if _, ok := n.DB.Get(c.Key, Integer{}); ok {
 		n.DB.Del(c.Key)
 		conn.Write(StringToByte("successfully deleted key\n" +
 			".\n",
 		))
 		return true
 	}
-	if _, ok := n.DB.Get(c.Key, StringEncoder{}); ok {
+	if _, ok := n.DB.Get(c.Key, String{}); ok {
 		n.DB.Del(c.Key)
 		conn.Write(StringToByte("successfuly deleted key\n" +
 			".\n",
