@@ -28,8 +28,6 @@ func (v *DB) DeleteAfterTTL(ttl time.Duration, key string) {
 	v.Del(key)
 }
 
-// todo: seperate TTL-based Set() with normal Set().
-
 func (v *DB) SetTTL[T any](key string, value T, ttl time.Duration, encoder Encoder[T]) error {
 	data, err := encoder.Encode(value)
 	if err != nil {
