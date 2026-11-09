@@ -37,8 +37,72 @@ var InvalidRoleErr = errors.New("node is not a leader.")
 var InvalidSetStrTypeErr = errors.New("SetStr requires string value")
 var InvalidSetIntTypeErr = errors.New("SetInt requires int value")
 
-// Commands for which each node will replicate.
-func (n *Node) SetStr(key, value string, TTL time.Duration) error {
+// non-TTL based abstractions over db methods.
+
+func (n *Node) SetStr(key, value string) error {
+	if n.NodeRole != Leader {
+		return InvalidRoleErr
+	}
+
+	cmd := Command{
+		Type:  "SET",
+		Key:   key,
+		Value: value,
+	}
+	// // // type checking cmd.value
+	value, ok := cmd.Value.(string)
+	if !ok {
+		return InvalidSetStrTypeErr
+	}
+
+	// applying command locally before other nodes
+	err := n.DB.Set(cmd.Type, value, StringEncoder{})
+	if err != nil {
+		return err
+	}
+
+	for _, r := range n.Replicas { // replicate for each node
+		err := n.Replicate(r, cmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (n *Node) SetInt(key string, value uint32) error {
+	if n.NodeRole != Leader {
+		return InvalidRoleErr
+	}
+
+	cmd := Command{
+		Type:  "SET",
+		Key:   key,
+		Value: value,
+	}
+
+	val, ok := cmd.Value.(uint32)
+	if !ok {
+		return InvalidSetIntTypeErr
+	}
+
+	// applying command locally before other nodes
+	err := n.DB.Set(cmd.Type, val, Uint32Encoder{})
+	if err != nil {
+		return err
+	}
+
+	for _, r := range n.Replicas { // replicate for each node
+		err := n.Replicate(r, cmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// TTL-based abstractions over db methods.
+func (n *Node) SetStr_TTL(key, value string, TTL time.Duration) error {
 	if n.NodeRole != Leader {
 		return InvalidRoleErr
 	}
@@ -71,7 +135,7 @@ func (n *Node) SetStr(key, value string, TTL time.Duration) error {
 	return nil
 }
 
-func (n *Node) SetInt(key string, value uint32, TTL time.Duration) error {
+func (n *Node) SetInt_TTL(key string, value uint32, TTL time.Duration) error {
 	if n.NodeRole != Leader {
 		return InvalidRoleErr
 	}

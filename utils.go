@@ -23,7 +23,19 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 	val, err := c.Value.(uint32)
 
 	if err {
-		err2 := node.SetInt(c.Key, val, c.TTL)
+		if c.TTL != 0 {
+			err2 := node.SetInt_TTL(c.Key, val, c.TTL)
+			if err2 != nil {
+				conn.Write(StringToByte(err2.Error() + "\n"))
+				return false
+			}
+			conn.Write(StringToByte("successful\n" +
+				".\n",
+			))
+			return true
+		}
+
+		err2 := node.SetInt(c.Key, val)
 		if err2 != nil {
 			conn.Write(StringToByte(err2.Error() + "\n"))
 			return false
@@ -36,8 +48,18 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 
 	val2, err := c.Value.(string)
 	if err {
-		// its a string if unable to parse to uint.
-		err2 := node.SetStr(c.Key, val2, c.TTL)
+		if c.TTL != 0 {
+			err2 := node.SetStr_TTL(c.Key, val2, c.TTL)
+			if err2 != nil {
+				conn.Write(StringToByte(err2.Error() + "\n"))
+				return false
+			}
+			conn.Write(StringToByte("successful\n" +
+				".\n",
+			))
+			return true
+		}
+		err2 := node.SetStr(c.Key, val2)
 		if err2 != nil {
 			conn.Write(StringToByte(err2.Error() + "\n"))
 			return false
