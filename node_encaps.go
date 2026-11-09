@@ -49,8 +49,8 @@ func (n *Node) SetStr(key, value string, TTL time.Duration) error {
 		Value: value,
 		TTL:   TTL,
 	}
-
-	// type checking cmd.value
+	//
+	// // // type checking cmd.value
 	value, ok := cmd.Value.(string)
 	if !ok {
 		return InvalidSetStrTypeErr

@@ -18,7 +18,7 @@ func ByteToString(b []byte) string {
 
 // utility functions for server/main.go
 
-func (c *Command) Set[T any](node *Node, conn net.Conn) bool {
+func (c *Command) Set(node *Node, conn net.Conn) bool {
 	//parsing values type.
 	val, err := c.Value.(uint32)
 
@@ -50,39 +50,6 @@ func (c *Command) Set[T any](node *Node, conn net.Conn) bool {
 	conn.Write(StringToByte("unknown value type." + "\n"))
 	return false
 }
-
-//	func (c *Command) Set(node *Node, conn net.Conn) bool {
-//		//parsing values type.
-//		val, err := c.Value.(uint32)
-//
-//		if err {
-//			err2 := node.SetInt(c.Key, val, c.TTL)
-//			if err2 != nil {
-//				conn.Write(StringToByte(err2.Error() + "\n"))
-//				return false
-//			}
-//			conn.Write(StringToByte("successful\n" +
-//				".\n",
-//			))
-//			return true
-//		}
-//
-//		val2, err := c.Value.(string)
-//		if err {
-//			// its a string if unable to parse to uint.
-//			err2 := node.SetStr(c.Key, val2, c.TTL)
-//			if err2 != nil {
-//				conn.Write(StringToByte(err2.Error() + "\n"))
-//				return false
-//			}
-//			conn.Write(StringToByte("successful\n" +
-//				".\n",
-//			))
-//			return true
-//		}
-//		conn.Write(StringToByte("unknown value type." + "\n"))
-//		return false
-//	}
 func (c *Command) Get(n *Node, conn net.Conn) bool {
 	val, ok := n.DB.Get(c.Key, Uint32Encoder{})
 	if !ok {

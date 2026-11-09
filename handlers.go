@@ -19,7 +19,7 @@ func (n *Node) HandleConnection(conn net.Conn) {
 		return
 	}
 
-	valType, ok := cmd.GetValueType()
+	_, ok := cmd.GetValueType()
 	if !ok {
 		slog.Error("ERR", "type_error", "unknown value type.")
 		return
@@ -34,17 +34,9 @@ func (n *Node) HandleConnection(conn net.Conn) {
 		case "HEARTBEAT":
 			n.HandleHeartbeat(cmd.NodeID, conn, cmd.Term, cmd.Role)
 		case "SET":
-			switch valType {
-			case "uint32":
-				ok := cmd.Set[uint32](n, conn)
-				if !ok {
-					conn.Write(StringToByte(".\n"))
-				}
-			case "string":
-				ok := cmd.Set[string](n, conn)
-				if !ok {
-					conn.Write(StringToByte(".\n"))
-				}
+			ok := cmd.Set(n, conn)
+			if !ok {
+				conn.Write(StringToByte(".\n"))
 			}
 		case "GET":
 			ok := cmd.Get(n, conn)
