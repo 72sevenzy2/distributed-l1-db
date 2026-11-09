@@ -8,11 +8,11 @@ import (
 
 func TestDbInt(t *testing.T) {
 	b := NewDB()
-	b.Set("name", 100000, time.Minute*10, Uint32Encoder{})
+	b.SetTTL("name", 100000, time.Minute*10, Uint32Encoder{})
 	b.Del("name")
 
-	b.Set("test1", 100000000, time.Minute*10, Uint32Encoder{})
-	b.Set("test2", 1434242324, time.Minute*10, Uint32Encoder{})
+	b.SetTTL("test1", 100000000, time.Minute*10, Uint32Encoder{})
+	b.SetTTL("test2", 1434242324, time.Minute*10, Uint32Encoder{})
 
 	all, _ := b.GetAll(Uint32Encoder{})
 

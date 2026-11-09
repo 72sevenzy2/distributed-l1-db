@@ -9,8 +9,8 @@ import (
 func TestString(t *testing.T) {
 	d := NewDB()
 
-	err := d.Set("test1", "h", time.Minute*10, StringEncoder{})
-	err2 := d.Set("test2", "hi2", time.Minute*10, StringEncoder{})
+	err := d.SetTTL("test1", "h", time.Minute*10, StringEncoder{})
+	err2 := d.SetTTL("test2", "hi2", time.Minute*10, StringEncoder{})
 
 	if err != nil || err2 != nil {
 		fmt.Println(err.Error(), err2.Error())

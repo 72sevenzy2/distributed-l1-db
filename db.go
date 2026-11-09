@@ -28,7 +28,9 @@ func (v *DB) DeleteAfterTTL(ttl time.Duration, key string) {
 	v.Del(key)
 }
 
-func (v *DB) Set[T any](key string, value T, ttl time.Duration, encoder Encoder[T]) error {
+// todo: seperate TTL-based Set() with normal Set().
+
+func (v *DB) SetTTL[T any](key string, value T, ttl time.Duration, encoder Encoder[T]) error {
 	data, err := encoder.Encode(value)
 	if err != nil {
 		return err
@@ -46,6 +48,26 @@ func (v *DB) Set[T any](key string, value T, ttl time.Duration, encoder Encoder[
 	}
 
 	go v.DeleteAfterTTL(ttl, key)
+	return nil
+}
+
+func (v *DB) Set[T any](key string, value T, encoder Encoder[T]) error {
+	data, err := encoder.Encode(value)
+	if err != nil {
+		return err
+	}
+
+	v.dataLock.Lock()
+	defer v.dataLock.Unlock()
+	if _, ok := v.data[key]; !ok {
+		v.data[key] = Entity{
+			Value: encoder.TypeID(),
+			Data:  data,
+		}
+	} else {
+		return KeyAlreadyExistsErr
+	}
+
 	return nil
 }
 
