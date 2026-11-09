@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,7 +52,12 @@ func main() {
 				continue
 			}
 			cmd.Key = parts[1]
+
 			cmd.Value = parts[2]
+			val, err := strconv.ParseUint(parts[2], 10, 32)
+			if err == nil {
+				cmd.Value = uint32(val)
+			}
 
 			if len(parts) == 4 {
 				ttl, err := time.ParseDuration(parts[3])

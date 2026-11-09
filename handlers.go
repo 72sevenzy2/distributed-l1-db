@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -14,6 +15,7 @@ func (n *Node) HandleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	decoder := json.NewDecoder(conn)
+	decoder.UseNumber()
 	for {
 		var cmd Command
 		if err := decoder.Decode(&cmd); err != nil {
@@ -31,6 +33,15 @@ func (n *Node) HandleConnection(conn net.Conn) {
 		case "HEARTBEAT":
 			n.HandleHeartbeat(cmd.NodeID, conn, cmd.Term, cmd.Role)
 		case "SET":
+			if number, ok := cmd.Value.(json.Number); ok {
+				value, err := strconv.ParseInt(number.String(), 10, 32)
+				if err != nil {
+					conn.Write(StringToByte("invalid integer value\n.\n"))
+					continue
+				}
+				cmd.Value = uint32(value)
+			}
+
 			_, ok := cmd.GetValueType()
 			if !ok {
 				slog.Error("ERR", "type_error", "unknown value type.")
