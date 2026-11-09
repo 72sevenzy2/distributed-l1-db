@@ -1,4 +1,4 @@
-<h1 align="center"> key-value style l1 db. </h1>
+<h1 align="center"> k-v distributed l1 db. </h1>
 <br>
 <ul>
   <li>optional TTL-based eviction for short-lived data.</li>
@@ -8,8 +8,11 @@
   <li>serializes integer-based values to raw bytes before appending to l1 db for optimised performance upon replica node retrieval.</li>
 </ul>
 
-<h1 align="center">usage:</h1>
-<h3 align="center">to start off, you can either set data using SetInt() for key-values with values having type int, or SetString() for key-values with values having type string:</h3>
+<br>
+<h1 align="center">pre-requisites:</h1>
+<h2 align="center">go version 1.27+</h2>
+<br>
+<h1 align="center">getting started:</h1>
 
 ```
 package main
@@ -21,13 +24,37 @@ import (
 
 func main() {
 	v := db.NewDB()
-
-	err := v.SetInt("test1", 200) // setting ints
+	// db.Integer{} specifies that its an int-type value.
+	err := v.Set("test1", 200, db. db.Integer{}) // setting ints
 	if err != nil {
 		panic(err)
 	}
 
-	err2 := v.SetString("test2", "hello") // setting strings
+	// db.String{} specifies that its an string-type value.
+	err2 := v.Set("test2", "hello", db.String{}) // setting strings
+	if err2 != nil {
+		panic(err2)
+	}
+}
+```
+<h3 align="center">setting data with TTLs:</h3>
+
+```
+package main
+
+import (
+	"fmt"
+	"github.com/72sevenzy2/in-memory-database/db"
+)
+
+func main() {
+	v := db.NewDB()
+	err := v.Set("test1", 200, time.Second*5, db.Integer{})
+	if err != nil {
+		panic(err)
+	}
+
+	err2 := v.Set("test2", "hello", time.Second*10, db.String{})
 	if err2 != nil {
 		panic(err2)
 	}
@@ -47,20 +74,22 @@ import (
 func main() {
 	v := db.NewDB()
 
-	val, ok := v.GetInt("test1")
+	// here, db.Integer{} specifies that your retrieving an int-typed value of the given key.
+	val, ok := v.Get("test1", db.Integer{})
 	if ok {
-		fmt.Println(val)
+		fmt.Println(val) // 200
 	}
 
-	val2, ok2 := v.GetString("test2")
+	// and here, db.String{} specifies that your retrieving an string-typed value of the given key.
+	val2, ok2 := v.Get("test2", db.String{})
 	if ok2 {
-		fmt.Println(val2)
+		fmt.Println(val2) // "hello"
 	}
 	
 }
 ```
 
-<h3 align="center">if you want to retrieve all key-values with values of type strings/ints:</h3>
+<h3 align="center">to retrieve all values of type string/int:</h3>
 
 ```
 package main
@@ -73,14 +102,14 @@ import (
 func main() {
 	v := db.NewDB()
 
-	vals, ok := v.GetAllString() // vals is of type map[string]string
+	vals, ok := v.GetAll(db.String{}) // vals is of type map[string]string
 	if ok {
 		for k, v := range vals {
 			fmt.Println(k, v)
 		}
 	}
 
-	vals2, ok2 := v.GetAllInt() // vals2 is of type map[string]uint32
+	vals2, ok2 := v.GetAll(db.Integer{}) // vals2 is of type map[string]uint32
 	if ok2 {
 		for k, v := range vals2 {
 			fmt.Println(k, v)
@@ -90,7 +119,7 @@ func main() {
 }
 ```
 
-<h3 align="center">and finally, to delete keys:</h3>
+<h3 align="center">lastly, to delete keys:</h3>
 
 ```
 package main
@@ -104,37 +133,49 @@ func main() {
 	v := db.NewDB()
 
 	v.Del("keyName")
-
 }
 
 ```
 
 <br>
 <h1 align="center">interactive cli tutorial:</h1>
-<h2 align="center">run the following to begin:</h2>
+<h2 align="center">firstly, switch to the cmd/server directory:</h2>
 <h3 align="center">
-  <code> go run . -id node-id -addr port -replicas port1,port2,port3 </code>
+	<code> cd cmd/server </code>
 </h3>
-<h4 align="center">-id represents an unique id for the leader node, eg "node-#1", -addr is the port in which it will listen on, and -replicas is for the ports in which the replica nodes will run on (comma-seperated).</h4>
+<h2 align="center">and begin with spinning up a db node:</h2>
+<h3 align="center">
+  <code> go run . -id [node-id] -addr [port] -replicas [port1,port2,port3] </code>
+</h3>
+<h4 align="center">where -id represents an unique id for the leader node, eg "node-#1", -addr is the port in which it will listen on, and -replicas is for the ports in which the replica nodes will run on (comma-seperated).</h4>
 <br>
+<h2 align="center">and afterwards, switch to the cmd/cli directory and start the cli (in another terminal): </h2>
+<h3 align="center">
+	<code> cd cmd/cli </code>
+	<br>
+	<br>
+	<code> go run . </code>
+</h3>
 <h2 align="center">follow up by declaring a variable:</h2>
 <h3 align="center">
   <code> SET [KeyName] [Value] </code>
 </h3>
-<h3 align="center">(key names only support either integers or strings as of now).</h3>
-
-<h2 align="center">after setting a variable, you can then retrieve it like so:</h2>
+<h2 align="center">with TTL expiration:</h2>
+<h3 align="center">
+  <code> SET [KeyName] [Value] [TTL, eg: 30s / 1m]</code>
+</h3>
+<h2 align="center">and retrieve it like so:</h2>
 <h3 align="center">
   <code> GET [KeyName] </code>
 </h3>
 <h3 align="center">and it returns the value of the key given.</h3>
 
-<h2 align="center">to delete a variable/key:</h2>
+<h2 align="center">deleting a variable/key:</h2>
 <h3 align="center">
   <code> DEL [KeyName] </code>
 </h3>
 
-<h2 align="center">finally, to exit:</h2>
+<h2 align="center">lastly, to exit:</h2>
 <h3 align="center">
   <code> EXIT </code>
 </h3>
