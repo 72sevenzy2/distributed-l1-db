@@ -1,11 +1,12 @@
 <h1 align="center"> k-v distributed l1 db. </h1>
 <br>
 <ul>
+  <li>mutex-free reads with atomic.Pointer[T].</li>
   <li>optional TTL-based eviction for short-lived data.</li>
   <li>utilises an inter-node based communication system with a leader election mechanism upon leader failure.</li>
-  <li>persistant serverside error handling.</li>
-  <li>interactive cli mode, which stores variable-like data  to then be retrieved later with methods like "GET", "SET", "DEL", and "EXIT" to exit the program.</li>
-  <li>serializes integer-based values to raw bytes before appending to l1 db for optimised performance upon replica node retrieval.</li>
+  <li>centralised serverside error handling.</li>
+  <li>interactive cli mode, which allows storing data as well as data retrieval.</li>
+  <li>serialises integer-based values to bytes before storing in the db for optimised performance during inter-node communication.</li>
 </ul>
 
 <br>
