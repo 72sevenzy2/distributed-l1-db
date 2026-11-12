@@ -1,7 +1,7 @@
 package db
 
 import (
-	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -11,16 +11,19 @@ type Entity struct {
 	Value string
 }
 
-// core logic
+type l1_database map[string]Entity
+
 type DB struct {
-	dataLock sync.RWMutex // allows for high concurrent reads without potential for-write lock contention.
-	data     map[string]Entity
+	// l1 map with mutex-free reads/writes.
+	data atomic.Pointer[l1_database]
 }
 
-func NewDB() *DB { // initialise a new map to hold data
-	return &DB{
-		data: make(map[string]Entity),
-	}
+func NewDB() *DB {
+	db := make(l1_database)
+	db_instance := &DB{}
+	db_instance.data.Store(&db)
+
+	return db_instance
 }
 
 func (v *DB) DeleteAfterTTL(ttl time.Duration, key string) {
@@ -34,13 +37,20 @@ func (v *DB) SetTTL[T any](key string, value T, ttl time.Duration, encoder Encod
 		return err
 	}
 
-	v.dataLock.Lock()
-	defer v.dataLock.Unlock()
-	if _, ok := v.data[key]; !ok {
-		v.data[key] = Entity{
+	entries := v.data.Load()
+	_, ok := (*entries)[key]
+	if !ok {
+		// copying on write for data race prevention.
+		next := make(l1_database, len(*entries)+1)
+		for k, val := range *entries {
+			next[k] = val
+		}
+		newEntity := Entity{
 			Value: encoder.TypeID(),
 			Data:  data,
 		}
+		next[key] = newEntity
+		v.data.Store(&next)
 	} else {
 		return KeyAlreadyExistsErr
 	}
@@ -55,13 +65,21 @@ func (v *DB) Set[T any](key string, value T, encoder Encoder[T]) error {
 		return err
 	}
 
-	v.dataLock.Lock()
-	defer v.dataLock.Unlock()
-	if _, ok := v.data[key]; !ok {
-		v.data[key] = Entity{
+	entries := v.data.Load()
+	_, ok := (*entries)[key]
+	if !ok {
+		// copying on write for data race prevention.
+		next := make(l1_database, len(*entries)+1)
+		for k, val := range *entries {
+			next[k] = val
+		}
+		newEntity := Entity{
 			Value: encoder.TypeID(),
 			Data:  data,
 		}
+		next[key] = newEntity
+		v.data.Store(&next)
+
 	} else {
 		return KeyAlreadyExistsErr
 	}
@@ -70,10 +88,8 @@ func (v *DB) Set[T any](key string, value T, encoder Encoder[T]) error {
 }
 
 func (v *DB) Get[T any](key string, decoder Encoder[T]) (T, bool) {
-	v.dataLock.RLock()
-	data, ok := v.data[key]
-	v.dataLock.RUnlock()
-
+	entries := v.data.Load()
+	data, ok := (*entries)[key]
 	if !ok {
 		var zero T
 		return zero, false
@@ -92,9 +108,8 @@ func (v *DB) Get[T any](key string, decoder Encoder[T]) (T, bool) {
 func (v *DB) GetAll[T any](decoder Encoder[T]) (map[string]T, bool) {
 	result := make(map[string]T)
 
-	v.dataLock.RLock()
-	defer v.dataLock.RUnlock()
-	for k, entity := range v.data {
+	entries := v.data.Load()
+	for k, entity := range *entries {
 		if entity.Value != decoder.TypeID() {
 			continue
 		}
@@ -105,7 +120,7 @@ func (v *DB) GetAll[T any](decoder Encoder[T]) (map[string]T, bool) {
 		result[k] = data
 	}
 
-	if len(result) == 0 { // no existing data case
+	if len(result) == 0 { // no existing entries
 		return nil, false
 	}
 
@@ -113,7 +128,5 @@ func (v *DB) GetAll[T any](decoder Encoder[T]) (map[string]T, bool) {
 }
 
 func (v *DB) Del(key string) {
-	v.dataLock.Lock()
-	defer v.dataLock.Unlock()
-	delete(v.data, key) // built in delete() func to delete a particular key being held in the db map.
+	delete(*v.data.Load(), key)
 }

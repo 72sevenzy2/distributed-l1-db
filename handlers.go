@@ -3,7 +3,6 @@ package db
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -25,13 +24,6 @@ func (n *Node) HandleConnection(conn net.Conn) {
 			}
 			return
 		}
-
-		slog.Info("received command",
-			"type", cmd.Type,
-			"key", cmd.Key,
-			"value", cmd.Value,
-			"value_type", fmt.Sprintf("%T", cmd.Value),
-		)
 
 		UCinput := strings.ToUpper(cmd.Type) // normalise to all capital
 
