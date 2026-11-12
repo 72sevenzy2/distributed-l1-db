@@ -17,7 +17,7 @@ func (n *Node) HandleConnection(conn net.Conn) {
 	decoder := json.NewDecoder(conn)
 	decoder.UseNumber()
 	for {
-		var cmd Command
+		var cmd Command[any]
 		if err := decoder.Decode(&cmd); err != nil {
 			if !errors.Is(err, io.EOF) {
 				slog.Error("ERR", "decoding_err", err.Error())
@@ -87,7 +87,11 @@ func (n *Node) HandleConnection(conn net.Conn) {
 
 }
 
-func (n *Node) Replicate(addr string, cmd Command) error {
+type ValueType interface {
+	string | uint32
+}
+
+func (n *Node) Replicate(addr string, cmd Command[any]) error {
 	conn, err := net.DialTimeout("tcp", addr, time.Second*3) // timeout safeguards against unresponsive tcp servers.
 	if err != nil {
 		return err

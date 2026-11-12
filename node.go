@@ -94,7 +94,7 @@ func (n *Node) Sendheartbeat() {
 		role := n.GetRole()
 		n.lock.RUnlock()
 
-		msg := &Command{
+		msg := &Command[string]{ // for reference: the instantiation type does not matter here.
 			Type:   "heartbeat",
 			NodeID: n.ID,
 			Term:   term,
@@ -108,7 +108,7 @@ func (n *Node) Sendheartbeat() {
 			continue
 		}
 
-		var ack Command
+		var ack Command[string]
 		dec := json.NewDecoder(conn)
 		if err := dec.Decode(&ack); err != nil {
 			slog.Error("ERR", "decoding_err", err)
@@ -132,7 +132,7 @@ func (n *Node) HandleHeartbeat(id string, conn net.Conn, term uint64, role Role)
 	if term < n.currentTerm { // ignore heartbeats from an older term.
 		trm := n.currentTerm
 		n.lock.Unlock()
-		msg := &Command{
+		msg := &Command[string]{ // for reference: the instantiation type does not matter here.
 			Type:   "heartbeat_ack",
 			NodeID: n.ID,
 			Term:   trm,
@@ -157,7 +157,7 @@ func (n *Node) HandleHeartbeat(id string, conn net.Conn, term uint64, role Role)
 	}
 	n.lock.Unlock()
 
-	msg := &Command{
+	msg := &Command[string]{ // for reference: the instantiation type does not matter here.
 		Type:   "heartbeat_ack",
 		NodeID: n.ID,
 		Term:   term,

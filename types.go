@@ -15,14 +15,18 @@ const (
 	Candidate             // 2
 )
 
+type CmdType interface {
+	ValueType | any
+}
+
 // Command defines the details of the commands that will be processed by follower nodes after the leader node.
-type Command struct {
+type Command[T CmdType] struct {
 	Type string
 	// NodeID will be used for heartbeat checks.
 	NodeID string
 
 	Key   string
-	Value any
+	Value T
 
 	TTL time.Duration
 

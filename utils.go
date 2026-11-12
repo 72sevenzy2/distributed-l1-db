@@ -18,13 +18,13 @@ func ByteToString(b []byte) string {
 
 // utility functions for server/main.go
 
-func (c *Command) Set(node *Node, conn net.Conn) bool {
+func (c *Command[V]) Set(node *Node, conn net.Conn) bool {
 	//parsing values type.
-	val, err := c.Value.(uint32)
+	val, err := any(c.Value).(uint32)
 
 	if err {
 		if c.TTL != 0 {
-			err2 := node.SetInt_TTL(c.Key, val, c.TTL)
+			err2 := node.Set_TTL(c.Key, val, c.TTL)
 			if err2 != nil {
 				conn.Write(StringToByte(err2.Error() + "\n"))
 				return false
@@ -35,7 +35,7 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 			return true
 		}
 
-		err2 := node.SetInt(c.Key, val)
+		err2 := node.Set(c.Key, val)
 		if err2 != nil {
 			conn.Write(StringToByte(err2.Error() + "\n"))
 			return false
@@ -46,10 +46,10 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 		return true
 	}
 
-	val2, err := c.Value.(string)
+	val2, err := any(c.Value).(string)
 	if err {
 		if c.TTL != 0 {
-			err2 := node.SetStr_TTL(c.Key, val2, c.TTL)
+			err2 := node.Set_TTL(c.Key, val2, c.TTL)
 			if err2 != nil {
 				conn.Write(StringToByte(err2.Error() + "\n"))
 				return false
@@ -59,7 +59,7 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 			))
 			return true
 		}
-		err2 := node.SetStr(c.Key, val2)
+		err2 := node.Set(c.Key, val2)
 		if err2 != nil {
 			conn.Write(StringToByte(err2.Error() + "\n"))
 			return false
@@ -72,7 +72,7 @@ func (c *Command) Set(node *Node, conn net.Conn) bool {
 	conn.Write(StringToByte("unknown value type." + "\n"))
 	return false
 }
-func (c *Command) Get(n *Node, conn net.Conn) bool {
+func (c *Command[V]) Get(n *Node, conn net.Conn) bool {
 	val, ok := n.DB.Get(c.Key, Integer{})
 	if !ok {
 		val2, ok2 := n.DB.Get(c.Key, String{})
@@ -108,7 +108,7 @@ func Fetch(n *Node, conn net.Conn) {
 	}
 }
 
-func (c *Command) Del(n *Node, conn net.Conn) bool {
+func (c *Command[V]) Del(n *Node, conn net.Conn) bool {
 	if _, ok := n.DB.Get(c.Key, Integer{}); ok {
 		n.DB.Del(c.Key)
 		conn.Write(StringToByte("successfully deleted key\n" +
@@ -126,8 +126,8 @@ func (c *Command) Del(n *Node, conn net.Conn) bool {
 	return false
 }
 
-func (c Command) GetValueType() (string, bool) {
-	switch c.Value.(type) {
+func (c Command[V]) GetValueType() (string, bool) {
+	switch any(c.Value).(type) {
 	case string:
 		return "string", true
 

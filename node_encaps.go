@@ -34,135 +34,102 @@ func (n *Node) AssignFollower() {
 }
 
 var InvalidRoleErr = errors.New("node is not a leader.")
-var InvalidSetStrTypeErr = errors.New("SetStr requires string value")
-var InvalidSetIntTypeErr = errors.New("SetInt requires int value")
+var InvalidTypeErr = errors.New("invalid value type.")
 
 // non-TTL based abstractions over db methods.
-	
-func (n *Node) SetStr(key, value string) error {
+
+func (n *Node) Set[T any](key string, value T) error {
 	if n.GetRole() != Leader {
 		return InvalidRoleErr
 	}
 
-	cmd := Command{
-		Type:  "SET",
-		Key:   key,
-		Value: value,
-	}
-	// // // type checking cmd.value
-	value, ok := cmd.Value.(string)
-	if !ok {
-		return InvalidSetStrTypeErr
-	}
-
-	// applying command locally before other nodes
-	err := n.DB.Set(key, value, String{})
-	if err != nil {
-		return err
-	}
-
-	for _, r := range n.Replicas { // replicate for each node
-		err := n.Replicate(r, cmd)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (n *Node) SetInt(key string, value uint32) error {
-	if n.GetRole() != Leader {
-		return InvalidRoleErr
-	}
-
-	cmd := Command{
+	cmd := Command[any]{
 		Type:  "SET",
 		Key:   key,
 		Value: value,
 	}
 
-	val, ok := cmd.Value.(uint32)
-	if !ok {
-		return InvalidSetIntTypeErr
-	}
-
-	// applying command locally before other nodes
-	err := n.DB.Set(key, val, Integer{})
-	if err != nil {
-		return err
-	}
-
-	for _, r := range n.Replicas { // replicate for each node
-		err := n.Replicate(r, cmd)
+	val, ok := any(value).(string)
+	if ok {
+		// applying command locally before other nodes
+		err := n.DB.Set(key, val, String{})
 		if err != nil {
 			return err
 		}
+
+		for _, r := range n.Replicas { // replicate for each node
+			err := n.Replicate(r, cmd)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
-	return nil
+	val2, ok2 := any(value).(uint32)
+	if ok2 {
+		// applying command locally before other nodes
+		err := n.DB.Set(key, val2, Integer{})
+		if err != nil {
+			return err
+		}
+
+		for _, r := range n.Replicas { // replicate for each node
+			err := n.Replicate(r, cmd)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	return InvalidTypeErr
 }
 
 // TTL-based abstractions over db methods.
-func (n *Node) SetStr_TTL(key, value string, TTL time.Duration) error {
+func (n *Node) Set_TTL[T any](key string, value T, TTL time.Duration) error {
 	if n.GetRole() != Leader {
 		return InvalidRoleErr
 	}
 
-	cmd := Command{
+	cmd := Command[any]{
 		Type:  "SET",
 		Key:   key,
-		Value: value,
 		TTL:   TTL,
-	}
-	//
-	// // // type checking cmd.value
-	value, ok := cmd.Value.(string)
-	if !ok {
-		return InvalidSetStrTypeErr
+		Value: value,
 	}
 
-	// applying command locally before other nodes
-	err := n.DB.SetTTL(key, value, cmd.TTL, String{})
-	if err != nil {
-		return err
-	}
-
-	for _, r := range n.Replicas { // replicate for each node
-		err := n.Replicate(r, cmd)
+	val, ok := any(value).(string)
+	if ok {
+		// applying command locally before other nodes
+		err := n.DB.SetTTL(key, val, cmd.TTL, String{})
 		if err != nil {
 			return err
 		}
-	}
-	return nil
-}
 
-func (n *Node) SetInt_TTL(key string, value uint32, TTL time.Duration) error {
-	if n.GetRole() != Leader {
-		return InvalidRoleErr
+		for _, r := range n.Replicas { // replicate for each node
+			err := n.Replicate(r, cmd)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
-
-	cmd := Command{
-		Type:  "SET",
-		Key:   key,
-		Value: value,
-		TTL:   TTL,
-	}
-
-	val, ok := cmd.Value.(uint32)
-	if !ok {
-		return InvalidSetIntTypeErr
-	}
-
-	// applying command locally before other nodes
-	err := n.DB.SetTTL(key, val, cmd.TTL, Integer{})
-	if err != nil {
-		return err
-	}
-
-	for _, r := range n.Replicas { // replicate for each node
-		err := n.Replicate(r, cmd)
+	val2, ok2 := any(value).(uint32)
+	if ok2 {
+		// applying command locally before other nodes
+		err := n.DB.SetTTL(key, val2, cmd.TTL, Integer{})
 		if err != nil {
 			return err
 		}
+
+		for _, r := range n.Replicas { // replicate for each node
+			err := n.Replicate(r, cmd)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
-	return nil
+
+	return InvalidTypeErr
 }
