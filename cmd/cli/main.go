@@ -41,7 +41,7 @@ func main() {
 			continue
 		}
 
-		cmd := db.Command[db.CmdType]{
+		cmd := db.Command[any]{
 			Type: strings.ToUpper(parts[0]),
 		}
 
