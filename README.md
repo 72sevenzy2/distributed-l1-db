@@ -10,8 +10,14 @@
 </ul>
 
 <br>
-<h1 align="center">pre-requisites:</h1>
+<h1 align="center">pre-requisite:</h1>
 <h2 align="center">go version 1.27+</h2>
+<h1 align="center">instillation</h1>
+
+```
+go get github.com/72sevenzy2/in-memory-database
+```
+
 <br>
 <h1 align="center">getting started:</h1>
 
@@ -20,7 +26,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/72sevenzy2/in-memory-database/db"
+	db "github.com/72sevenzy2/in-memory-database"
 )
 
 func main() {
@@ -45,7 +51,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/72sevenzy2/in-memory-database/db"
+	db "github.com/72sevenzy2/in-memory-database"
 )
 
 func main() {
@@ -69,7 +75,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/72sevenzy2/in-memory-database/db"
+	db "github.com/72sevenzy2/in-memory-database"
 )
 
 func main() {
@@ -97,7 +103,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/72sevenzy2/in-memory-database/db"
+	db "github.com/72sevenzy2/in-memory-database"
 )
 
 func main() {
@@ -127,7 +133,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/72sevenzy2/in-memory-database/db"
+	db "github.com/72sevenzy2/in-memory-database"
 )
 
 func main() {
