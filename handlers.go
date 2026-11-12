@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -17,13 +18,20 @@ func (n *Node) HandleConnection(conn net.Conn) {
 	decoder := json.NewDecoder(conn)
 	decoder.UseNumber()
 	for {
-		var cmd Command
+		var cmd Command[any]
 		if err := decoder.Decode(&cmd); err != nil {
 			if !errors.Is(err, io.EOF) {
 				slog.Error("ERR", "decoding_err", err.Error())
 			}
 			return
 		}
+
+		slog.Info("received command",
+			"type", cmd.Type,
+			"key", cmd.Key,
+			"value", cmd.Value,
+			"value_type", fmt.Sprintf("%T", cmd.Value),
+		)
 
 		UCinput := strings.ToUpper(cmd.Type) // normalise to all capital
 
@@ -33,19 +41,18 @@ func (n *Node) HandleConnection(conn net.Conn) {
 		case "HEARTBEAT":
 			n.HandleHeartbeat(cmd.NodeID, conn, cmd.Term, cmd.Role)
 		case "SET":
-			if number, ok := cmd.Value.(json.Number); ok {
-				value, err := strconv.ParseInt(number.String(), 10, 32)
+			switch value := cmd.Value.(type) {
+			case json.Number:
+				parsed, err := strconv.ParseUint(value.String(), 10, 32)
 				if err != nil {
 					conn.Write(StringToByte("invalid integer value\n.\n"))
 					continue
 				}
-				cmd.Value = uint32(value)
-			}
-
-			_, ok := cmd.GetValueType()
-			if !ok {
-				slog.Error("ERR", "type_error", "unknown value type.")
-				return
+				cmd.Value = uint32(parsed)
+			case string: // preserving type strings here
+			default:
+				conn.Write(StringToByte("invalid value type\n.\n"))
+				continue
 			}
 
 			if !cmd.Set(n, conn) {
@@ -87,7 +94,11 @@ func (n *Node) HandleConnection(conn net.Conn) {
 
 }
 
-func (n *Node) Replicate(addr string, cmd Command) error {
+type ValueType interface {
+	string | uint32
+}
+
+func (n *Node) Replicate(addr string, cmd Command[any]) error {
 	conn, err := net.DialTimeout("tcp", addr, time.Second*3) // timeout safeguards against unresponsive tcp servers.
 	if err != nil {
 		return err

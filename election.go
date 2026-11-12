@@ -103,7 +103,7 @@ func (n *Node) RequestVote(addr string, term uint64) (bool, error) {
 	defer conn.Close()
 
 	// ask another peer for its vote.
-	msg := &Command{
+	msg := &Command[string]{
 		Type:   "vote_request",
 		NodeID: n.ID,
 		Term:   term,
@@ -114,7 +114,7 @@ func (n *Node) RequestVote(addr string, term uint64) (bool, error) {
 		return false, err
 	}
 
-	var resp Command
+	var resp Command[string]
 
 	dec := json.NewDecoder(conn)
 	if err := dec.Decode(&resp); err != nil {
@@ -144,7 +144,7 @@ func (n *Node) RequestVote(addr string, term uint64) (bool, error) {
 }
 
 // HandleVoteRequest validates whether nodes term is either outdated/up to date, which then allows it to vote.
-func (n *Node) HandleVoteRequest(msg Command, conn net.Conn) {
+func (n *Node) HandleVoteRequest(msg Command[any], conn net.Conn) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 
@@ -168,7 +168,7 @@ func (n *Node) HandleVoteRequest(msg Command, conn net.Conn) {
 		}
 	}
 
-	resp := Command{
+	resp := Command[string]{
 		Type:      "vote_response",
 		NodeID:    n.ID,
 		Term:      n.currentTerm,
