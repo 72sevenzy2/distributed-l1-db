@@ -30,7 +30,7 @@ func (n *Node) Start() error {
 	go n.Heartbeatloop()
 	go n.FailureDetectionloop()
 
-	fmt.Println("node listening on addr:", n.Addr)
+	fmt.Println("leader node listening on addr:", n.Addr)
 
 	for {
 		conn, err := l.Accept()
