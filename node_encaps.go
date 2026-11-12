@@ -38,7 +38,7 @@ var InvalidSetStrTypeErr = errors.New("SetStr requires string value")
 var InvalidSetIntTypeErr = errors.New("SetInt requires int value")
 
 // non-TTL based abstractions over db methods.
-
+	
 func (n *Node) SetStr(key, value string) error {
 	if n.GetRole() != Leader {
 		return InvalidRoleErr
