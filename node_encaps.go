@@ -40,7 +40,7 @@ var InvalidSetIntTypeErr = errors.New("SetInt requires int value")
 // non-TTL based abstractions over db methods.
 
 func (n *Node) SetStr(key, value string) error {
-	if n.NodeRole != Leader {
+	if n.GetRole() != Leader {
 		return InvalidRoleErr
 	}
 
@@ -71,7 +71,7 @@ func (n *Node) SetStr(key, value string) error {
 }
 
 func (n *Node) SetInt(key string, value uint32) error {
-	if n.NodeRole != Leader {
+	if n.GetRole() != Leader {
 		return InvalidRoleErr
 	}
 
@@ -103,7 +103,7 @@ func (n *Node) SetInt(key string, value uint32) error {
 
 // TTL-based abstractions over db methods.
 func (n *Node) SetStr_TTL(key, value string, TTL time.Duration) error {
-	if n.NodeRole != Leader {
+	if n.GetRole() != Leader {
 		return InvalidRoleErr
 	}
 
@@ -136,7 +136,7 @@ func (n *Node) SetStr_TTL(key, value string, TTL time.Duration) error {
 }
 
 func (n *Node) SetInt_TTL(key string, value uint32, TTL time.Duration) error {
-	if n.NodeRole != Leader {
+	if n.GetRole() != Leader {
 		return InvalidRoleErr
 	}
 
