@@ -62,6 +62,11 @@ func (n *Node) HandleConnection(conn net.Conn) {
 			if !ok {
 				conn.Write(StringToByte(".\n"))
 			}
+		case "EDIT":
+			ok := cmd.Edit(n, conn)
+			if !ok {
+				conn.Write(StringToByte(".\n"))
+			}
 		case "HELP":
 			conn.Write(StringToByte("General usage: \n" +
 				"SET <KeyName> <value> <TTL> \n" +

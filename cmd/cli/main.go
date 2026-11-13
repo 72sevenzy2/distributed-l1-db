@@ -82,6 +82,14 @@ func main() {
 				continue
 			}
 			cmd.Key = parts[1]
+
+		case "EDIT":
+			if len(parts) != 3 {
+				fmt.Println("usage: EDIT <key> <new value>")
+				continue
+			}
+
+			cmd.Key = parts[1]
 		}
 		if err := json.NewEncoder(conn).Encode(cmd); err != nil {
 			fmt.Println(err)
