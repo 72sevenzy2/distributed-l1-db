@@ -90,6 +90,12 @@ func main() {
 			}
 
 			cmd.Key = parts[1]
+			cmd.Value = parts[2]
+
+			val, err := strconv.ParseUint(parts[2], 10, 32)
+			if err == nil {
+				cmd.Value = uint32(val)
+			}
 		}
 		if err := json.NewEncoder(conn).Encode(cmd); err != nil {
 			fmt.Println(err)
