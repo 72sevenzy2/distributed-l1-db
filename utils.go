@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"strconv"
@@ -106,6 +107,35 @@ func Fetch(n *Node, conn net.Conn) {
 	for k, v := range vals2 {
 		fmt.Fprint(conn, k+" ", v, ".\n")
 	}
+}
+
+func (c *Command[V]) Edit(n *Node, conn net.Conn) bool {
+	var ok bool
+	switch value := any(c.Value).(type) {
+	case string:
+		ok = n.DB.Edit(c.Key, value, String{})
+	case json.Number:
+		parsed, err := strconv.ParseUint(value.String(), 10, 32)
+		if err != nil {
+			conn.Write(StringToByte("invalid integer value\n.\n"))
+			return false
+		}
+
+		ok = n.DB.Edit(c.Key, uint32(parsed), Integer{})
+	default:
+		conn.Write(StringToByte("unknown value type." + "\n"))
+		return false
+	}
+
+	if !ok {
+		conn.Write(StringToByte("data does not exist\n"))
+		return false
+	}
+
+	conn.Write(StringToByte("successful\n" +
+		".\n",
+	))
+	return true
 }
 
 func (c *Command[V]) Del(n *Node, conn net.Conn) bool {
