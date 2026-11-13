@@ -68,4 +68,5 @@ type Node struct {
 var (
 	InvalidInputErr     = errors.New("invalid input.")
 	KeyAlreadyExistsErr = errors.New("key already exists.")
+	KeyDoesNotExistErr  = errors.New("key does not exist.")
 )

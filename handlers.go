@@ -63,8 +63,8 @@ func (n *Node) HandleConnection(conn net.Conn) {
 				conn.Write(StringToByte(".\n"))
 			}
 		case "EDIT":
-			ok := cmd.Edit(n, conn)
-			if !ok {
+			err := cmd.Edit(n, conn)
+			if err != nil {
 				conn.Write(StringToByte(".\n"))
 			}
 		case "HELP":

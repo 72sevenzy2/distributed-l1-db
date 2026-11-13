@@ -109,33 +109,33 @@ func Fetch(n *Node, conn net.Conn) {
 	}
 }
 
-func (c *Command[V]) Edit(n *Node, conn net.Conn) bool {
-	var ok bool
+func (c *Command[V]) Edit(n *Node, conn net.Conn) error {
+	var err error
 	switch value := any(c.Value).(type) {
 	case string:
-		ok = n.DB.Edit(c.Key, value, String{})
+		err = n.DB.Edit(c.Key, value, String{})
 	case json.Number:
-		parsed, err := strconv.ParseUint(value.String(), 10, 32)
-		if err != nil {
+		parsed, ParseErr := strconv.ParseUint(value.String(), 10, 32)
+		if ParseErr != nil {
 			conn.Write(StringToByte("invalid integer value\n.\n"))
-			return false
+			return InvalidInputErr
 		}
 
-		ok = n.DB.Edit(c.Key, uint32(parsed), Integer{})
+		err = n.DB.Edit(c.Key, uint32(parsed), Integer{})
 	default:
 		conn.Write(StringToByte("unknown value type." + "\n"))
-		return false
+		return InvalidInputErr
 	}
 
-	if !ok {
+	if err != nil {
 		conn.Write(StringToByte("data does not exist\n"))
-		return false
+		return err
 	}
 
 	conn.Write(StringToByte("successful\n" +
 		".\n",
 	))
-	return true
+	return nil
 }
 
 func (c *Command[V]) Del(n *Node, conn net.Conn) bool {

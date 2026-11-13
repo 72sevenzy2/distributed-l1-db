@@ -63,10 +63,10 @@ func (v *DB) SetTTL[T any](key string, value T, ttl time.Duration, encoder Encod
 }
 
 // Edit mutates an existing entry in the database.
-func (v *DB) Edit[T any](key string, value T, encoder Encoder[T]) bool {
+func (v *DB) Edit[T any](key string, value T, encoder Encoder[T]) error {
 	data, err := encoder.Encode(value)
 	if err != nil {
-		return false
+		return InvalidInputErr
 	}
 
 	for {
@@ -83,10 +83,10 @@ func (v *DB) Edit[T any](key string, value T, encoder Encoder[T]) bool {
 			newDB[key] = newEntity
 
 			if v.data.CompareAndSwap(entries, &newDB) {
-				return true
+				return nil
 			}
 		} else {
-			return false
+			return KeyDoesNotExistErr
 		}
 	}
 }
