@@ -165,5 +165,20 @@ func (v *DB) GetAll[T any](decoder Encoder[T]) (map[string]T, bool) {
 }
 
 func (v *DB) Del(key string) {
-	delete(*v.data.Load(), key)
+	for {
+		entries := v.data.Load()
+		_, ok := (*entries)[key]
+		if ok {
+			newL1 := make(l1_database, len(*entries)-1)
+			for k, v := range *entries {
+				if k != key {
+					newL1[k] = v
+				}
+			}
+
+			if v.data.CompareAndSwap(entries, &newL1) {
+				return
+			}
+		}
+	}
 }
