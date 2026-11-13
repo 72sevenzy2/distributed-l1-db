@@ -1,6 +1,7 @@
 package db
 
 import (
+	"maps"
 	"sync/atomic"
 	"time"
 )
@@ -43,9 +44,7 @@ func (v *DB) SetTTL[T any](key string, value T, ttl time.Duration, encoder Encod
 		if !ok {
 			// copying on write for data race prevention.
 			next := make(l1_database, len(*entries)+1)
-			for k, val := range *entries {
-				next[k] = val
-			}
+			maps.Copy(next, *entries)
 			newEntity := Entity{
 				Value: encoder.TypeID(),
 				Data:  data,
@@ -76,9 +75,7 @@ func (v *DB) Edit[T any](key string, value T, encoder Encoder[T]) bool {
 		if ok {
 			// copying on write for data race prevention.
 			newDB := make(l1_database, len(*entries)+1)
-			for k, val := range *entries {
-				newDB[k] = val
-			}
+			maps.Copy(newDB, *entries)
 			newEntity := Entity{
 				Value: encoder.TypeID(),
 				Data:  data,
@@ -106,9 +103,7 @@ func (v *DB) Set[T any](key string, value T, encoder Encoder[T]) error {
 		if !ok {
 			// copying on write for data race prevention.
 			next := make(l1_database, len(*entries)+1)
-			for k, val := range *entries {
-				next[k] = val
-			}
+			maps.Copy(next, *entries)
 			newEntity := Entity{
 				Value: encoder.TypeID(),
 				Data:  data,
