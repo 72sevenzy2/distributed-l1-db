@@ -1,12 +1,12 @@
 <h1 align="center"> k-v distributed l1 db. </h1>
 <br>
 <ul>
-  <li>mutex-free reads with atomic.Pointer[T].</li>
+  <li>mutex-free concurrency-safe reads with atomic.Pointer[T].</li>
   <li>optional TTL-based eviction for short-lived data.</li>
   <li>utilises an inter-node based communication system with a leader election mechanism upon leader failure.</li>
   <li>centralised serverside error handling.</li>
   <li>interactive cli mode, which allows storing data as well as data retrieval.</li>
-  <li>serialises integer-based values to bytes before storing in the db for optimised performance during inter-node communication.</li>
+  <li>encodes integer type values to bytes before storing to the in-memory db for optimised performance during node-to-node communication.</li>
 </ul>
 
 <br>
@@ -125,6 +125,30 @@ func main() {
 
 }
 ```
+<h3 align="center">you can also edit existing keys:</h3>
+
+```
+package main
+
+import (
+	"fmt"
+	db "github.com/72sevenzy2/in-memory-database"
+)
+
+func main() {
+	v := db.NewDB()
+
+	err := v.Set("test1", 200, db. db.Integer{}) // setting ints
+	if err != nil {
+		panic(err)
+	}
+
+	err := v.Edit("test1", "new value", db.String{}) // "test1" is now set to the string value "new value"
+	if err != nil {
+		panic(err)
+	}
+}
+```
 
 <h3 align="center">lastly, to delete keys:</h3>
 
@@ -175,9 +199,12 @@ func main() {
 <h3 align="center">
   <code> GET [KeyName] </code>
 </h3>
-<h3 align="center">and it returns the value of the key given.</h3>
+<h2 align="center">you can also edit variables:</h2>
+<h3 align="center">
+	<code> EDIT [KeyName] [NewValue] </code>
+</h3>
 
-<h2 align="center">deleting a variable/key:</h2>
+<h2 align="center">and to delete a variable/key:</h2>
 <h3 align="center">
   <code> DEL [KeyName] </code>
 </h3>
