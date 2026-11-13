@@ -70,24 +70,28 @@ func (v *DB) Edit[T any](key string, value T, encoder Encoder[T]) bool {
 		return false
 	}
 
-	entries := v.data.Load()
-	_, ok := (*entries)[key]
-	if ok {
-		// copying on write for data race prevention.
-		newDB := make(l1_database, len(*entries)+1)
-		for k, val := range *entries {
-			newDB[k] = val
-		}
-		newEntity := Entity{
-			Value: encoder.TypeID(),
-			Data:  data,
-		}
-		newDB[key] = newEntity
-		v.data.Store(&newDB)
+	for {
+		entries := v.data.Load()
+		_, ok := (*entries)[key]
+		if ok {
+			// copying on write for data race prevention.
+			newDB := make(l1_database, len(*entries)+1)
+			for k, val := range *entries {
+				newDB[k] = val
+			}
+			newEntity := Entity{
+				Value: encoder.TypeID(),
+				Data:  data,
+			}
+			newDB[key] = newEntity
 
+			if v.data.CompareAndSwap(entries, &newDB) {
+				return true
+			}
+		} else {
+			return false
+		}
 	}
-
-	return true
 }
 
 func (v *DB) Set[T any](key string, value T, encoder Encoder[T]) error {
