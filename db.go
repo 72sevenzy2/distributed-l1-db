@@ -37,26 +37,57 @@ func (v *DB) SetTTL[T any](key string, value T, ttl time.Duration, encoder Encod
 		return err
 	}
 
+	for {
+		entries := v.data.Load()
+		_, ok := (*entries)[key]
+		if !ok {
+			// copying on write for data race prevention.
+			next := make(l1_database, len(*entries)+1)
+			for k, val := range *entries {
+				next[k] = val
+			}
+			newEntity := Entity{
+				Value: encoder.TypeID(),
+				Data:  data,
+			}
+			next[key] = newEntity
+
+			// check the map we loaded against the map we're appending.
+			if v.data.CompareAndSwap(entries, &next) {
+				go v.DeleteAfterTTL(ttl, key)
+				return nil
+			}
+		} else {
+			return KeyAlreadyExistsErr
+		}
+	}
+}
+
+// Edit mutates an existing entry in the database.
+func (v *DB) Edit[T any](key string, value T, encoder Encoder[T]) bool {
+	data, err := encoder.Encode(value)
+	if err != nil {
+		return false
+	}
+
 	entries := v.data.Load()
 	_, ok := (*entries)[key]
-	if !ok {
+	if ok {
 		// copying on write for data race prevention.
-		next := make(l1_database, len(*entries)+1)
+		newDB := make(l1_database, len(*entries)+1)
 		for k, val := range *entries {
-			next[k] = val
+			newDB[k] = val
 		}
 		newEntity := Entity{
 			Value: encoder.TypeID(),
 			Data:  data,
 		}
-		next[key] = newEntity
-		v.data.Store(&next)
-	} else {
-		return KeyAlreadyExistsErr
+		newDB[key] = newEntity
+		v.data.Store(&newDB)
+
 	}
 
-	go v.DeleteAfterTTL(ttl, key)
-	return nil
+	return true
 }
 
 func (v *DB) Set[T any](key string, value T, encoder Encoder[T]) error {
@@ -65,26 +96,28 @@ func (v *DB) Set[T any](key string, value T, encoder Encoder[T]) error {
 		return err
 	}
 
-	entries := v.data.Load()
-	_, ok := (*entries)[key]
-	if !ok {
-		// copying on write for data race prevention.
-		next := make(l1_database, len(*entries)+1)
-		for k, val := range *entries {
-			next[k] = val
-		}
-		newEntity := Entity{
-			Value: encoder.TypeID(),
-			Data:  data,
-		}
-		next[key] = newEntity
-		v.data.Store(&next)
+	for {
+		entries := v.data.Load()
+		_, ok := (*entries)[key]
+		if !ok {
+			// copying on write for data race prevention.
+			next := make(l1_database, len(*entries)+1)
+			for k, val := range *entries {
+				next[k] = val
+			}
+			newEntity := Entity{
+				Value: encoder.TypeID(),
+				Data:  data,
+			}
+			next[key] = newEntity
 
-	} else {
-		return KeyAlreadyExistsErr
+			if v.data.CompareAndSwap(entries, &next) {
+				return nil
+			}
+		} else {
+			return KeyAlreadyExistsErr
+		}
 	}
-
-	return nil
 }
 
 func (v *DB) Get[T any](key string, decoder Encoder[T]) (T, bool) {
