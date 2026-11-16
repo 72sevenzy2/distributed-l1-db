@@ -12,6 +12,22 @@ type Entity struct {
 	Value string
 }
 
+// utilities for individual entries.
+func (n *Entity) GetType() string {
+	if n.Value == "uint32" {
+		return "uint32"
+	}
+	return "string"
+}
+
+func (n *Entity) IsInteger() bool {
+	return n.Value == "uint32"
+}
+
+func (n *Entity) IsString() bool {
+	return n.Value == "string"
+}
+
 type l1_database map[string]Entity
 
 type DB struct {
