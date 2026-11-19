@@ -1,7 +1,7 @@
 <h1 align="center"> k-v distributed l1 db. </h1>
 <br>
 <ul>
-  <li>mutex-free concurrency-safe reads with atomic.Pointer[T].</li>
+  <li>lock-free reads/writes with atomic.Pointer[T].</li>
   <li>optional TTL-based eviction for short-lived data.</li>
   <li>utilises an inter-node based communication system with a leader election mechanism upon leader failure.</li>
   <li>centralised serverside error handling.</li>
