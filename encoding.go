@@ -1,7 +1,7 @@
 package db
 
 import "encoding/binary"
-
+	
 // generic encoder/decoder.
 type Encoder[T any] interface {
 	TypeID() string
